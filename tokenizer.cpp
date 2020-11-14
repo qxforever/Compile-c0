@@ -26,7 +26,7 @@ std::map<std::string, Token::type> Token::keyWordTable = std::map<std::string, t
 	{"continue", Token::Continue}
 };
 
-class TokenAnalyser{
+class Tokenizer{
 private:
     std::string s;
     using pts = std::pair<Token::type, std::string>;
@@ -145,7 +145,7 @@ public:
 		}
 	}
 
-    TokenAnalyser(std::string s){
+    Tokenizer(std::string s){
 		s += '\n';
         this->s = s;
     }
@@ -166,7 +166,7 @@ int main(){
 
 	cout << "read\n" << s << endl;
 	cout << "end read\n" << endl;
-	TokenAnalyser ana = TokenAnalyser(s);
+	Tokenizer ana = TokenAnalyser(s);
 	ana.work();
 	ana.show();
 }
