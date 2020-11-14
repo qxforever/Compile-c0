@@ -166,7 +166,7 @@ int main(){
 
 	cout << "read\n" << s << endl;
 	cout << "end read\n" << endl;
-	Tokenizer ana = TokenAnalyser(s);
+	Tokenizer ana = Tokenizer(s);
 	ana.work();
 	ana.show();
 }
