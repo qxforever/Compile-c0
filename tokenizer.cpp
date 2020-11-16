@@ -77,6 +77,47 @@ public:
 				token.push_back({Token::integer, tmp});
 				i = j - 1;
 			}
+			else if (s[i] == '\"') {
+				int j = i;
+				std::vector<int> tmp;
+				for (; j < len; j++) {
+					if (s[j] == '\\') tmp.push_back(-1);
+					else tmp.push_back(s[j]);
+					if (s[j] == '\"' && tmp.size() > 1 && tmp[tmp.size() - 2] != -1) break;
+					if (tmp.size() >= 2 && tmp[tmp.size() - 2] == -1) {
+						int c = tmp.back();
+						if (!(c == 'n' || c == 't' || c == 'r' || c == -1 || c == '\'' || c == '\"')) {
+							std::cerr << "Invalid escape sequence \n";
+							exit(3);
+						}
+						tmp.resize(tmp.size() - 2);
+						switch (c){
+							case 'n':
+								tmp.push_back('\n');break;
+							case 't':
+								tmp.push_back('\t');break;
+							case 'r':
+								tmp.push_back('\r');break;
+							case '\'':
+								tmp.push_back('\'');break;
+							case '\"':
+								tmp.push_back('\"');break;
+							case -1:
+								tmp.push_back('\\');break;
+							default:
+								ERROR("Invalid escape sequence");
+							break;
+						}
+					}
+				}
+				if (j == len) {
+					ERROR("\" does not match");
+				}
+				std::string ss;
+				for (auto i : tmp) ss += (char)i;
+				token.push_back({Token::string, ss});
+				i = j;
+			}
 			else if (s[i] == '=') {
 				if (s[i + 1] == '=') {
 					token.push_back({Token::equal, "=="});
@@ -87,8 +128,7 @@ public:
 			else if (s[i] == '!') {
 				if(s[i + 1] == '=') token.push_back({Token::notEqual, "!="}), i++;
 				else {
-					std::cerr << "Unexpected operator !";
-					exit(3);
+					ERROR("Unexpected operator !\n");
 				}
 			}
 			else if (s[i] == '<') {
@@ -135,7 +175,7 @@ public:
 					case ';':
 						token.push_back({Token::semicolon, ";"});break;
 					default:
-						std::cerr << "Unexpected character " << s[i] ;
+						std::cerr << "Unexpected character " << s[i] << '\n';
 						exit(3); 
 				}
 			}
@@ -144,7 +184,7 @@ public:
 	}
 
 	void show() {
-		for(const auto i : token) {
+		for(const auto &i : token) {
 			std::cout << i.first << " " << i.second  << '\n';
 		}
 	}
