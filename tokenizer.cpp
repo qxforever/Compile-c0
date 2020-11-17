@@ -8,7 +8,7 @@ class Token{
 public:
 	enum type {
 		fn, let, Const, as, While, If, Else, Return, Break, Continue,
-		integer, identify,
+		integer, identify, comment, 
 		string, plus, minus, mul,
 		div, assign, equal, notEqual, lower,
 		greater, lowerEqual, greaterEqual,
@@ -152,14 +152,22 @@ public:
 				}
 				else token.push_back({Token::minus, "-"});
 			}
+			else if (s[i] == '/') {
+				if (s[i + 1] == '/') {
+					int j = i + 2;
+					while (j < len || !isspace(s[j])) j++;
+					i = j;
+				}
+				else token.push_back({Token::div, "/"});
+			}
 			else {
 				switch(s[i]) {
 					case '+' :
 						token.push_back({Token::plus, "+"});break;
 					case '*' :
 						token.push_back({Token::mul, "*"});break;
-					case '/' :
-						token.push_back({Token::div, "/"});break;
+					// case '/' :
+					// 	token.push_back({Token::div, "/"});break;
 					case '(' :
 						token.push_back({Token::leftParen, "("});break;
 					case ')' :
@@ -223,4 +231,5 @@ int main(){
 	Tokenizer ana = Tokenizer(s);
 	ana.work();
 	ana.show();
+	
 }
