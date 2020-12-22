@@ -84,6 +84,14 @@ public:
 
 	template <typename T> void custom(T u) { _add(u); }
 
+	void custom(std::string u, Token::type v) {
+		if (v == Token::Double) u += "F";
+		else if (v == Token::integer) u += "I";
+		else if (v == Token::lower) u += "Lt" // less than
+		else if (v == Token::greater) u += "gt" // greater than
+		_add(u);
+	}
+
 	friend std::ostream& operator<<(std::ostream& out, Instructions& ins) {
 		out << "fn [" << ins.id << "] " << ins.p->getSize() << ' ' << ins.args << " -> " << (ins.retType > 0) << " {\n" << ins.instructions << "}\n";
 		return out;

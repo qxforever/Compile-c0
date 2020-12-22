@@ -1,5 +1,6 @@
 #pragma once
 #include "common.cpp"
+#include "tokenizer.cpp"
 #include <cstdlib>
 #include <iostream>
 #include <set>
@@ -9,19 +10,24 @@
 #include <vector>
 
 struct Ident {
-	bool isConst;
-	bool isFloat;
-	bool isGlobal;
+	bool isConst, isGlobal, isFunc;
+	Token::type type;
 	int pos;
+	std::vector<int> params;
+	std::string name;
 
-	Ident(bool isConst, bool isFloat, bool isGlobal, int pos) {
+	Ident(bool isConst, Token::type type, bool isGlobal, bool isFunc, int pos, std::string name) {
 		this->isConst = isConst;
-		this->isFloat = isFloat;
+		this->type = type;
 		this->isGlobal = isGlobal;
+		this->isFunc = isFunc;
 		this->pos = pos;
+		this->name = name;
 	}
 
-	void print() { std::cout << isConst << ' ' << isFloat << ' ' << isGlobal << ' ' << pos << '\n'; }
+	void add(int x) { params.push_back(x); }
+
+	void print() { std::cout << isConst << ' ' << type << ' ' << isGlobal << ' ' << pos << '\n'; }
 };
 
 class IdentTable {
@@ -47,10 +53,10 @@ public:
 			}
 		}
 		ident.resize(table.size());
-		ASSERT(newSize == table.size(), "check the correctness of IdentTable::exitBlock()");
+		ASSERT(newSize == (int)table.size(), "check the correctness of IdentTable::exitBlock()");
 	}
 
-	Ident& add(std::string name, bool isConst, bool isFloat) {
+	Ident& add(std::string name, bool isConst, Token::type type, bool isFunc) {
 		ASSERT(!newIdent.top().count(name), "redefine '" + name + '\'');
 		newIdent.top().insert(name);
 		if (!table.count(name)) {
@@ -59,9 +65,9 @@ public:
 			std::cout << name << '\n';
 			ident.push_back(std::stack<Ident>());
 		}
-		auto ret = Ident(isConst, isFloat, newIdent.size() == 1, cnt++);
-		ident[table[name]].push(Ident(isConst, isFloat, newIdent.size() == 1, cnt++));
-		return ret;
+		auto ret = Ident(isConst, type, newIdent.size() == 1, isFunc, cnt++, name);
+		ident[table[name]].push(ret);
+		return ident[table[name]].top();
 	}
 
 	Ident& find(std::string name) {

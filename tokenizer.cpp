@@ -8,25 +8,48 @@
 class Token{
 public:
 	enum type {
-		fn, let, Const, as, While, If, Else, Return, Break, Continue,
-		integer, Double, identify, comment, 
+		fn, let, Const, While, If, Else, Return, Break, Continue,
+		voidDecl, intDecl, doubleDecl,
+		Void, integer, Double, Bool, identify, comment, 
 		string, plus, minus, mul,
-		div, assign, equal, notEqual, lower,
-		greater, lowerEqual, greaterEqual,
-		leftParen, rightParen, leftBrace, rightBrace,
-		arrow, comma, colon, semicolon,
+		div, equal, notEqual, lower,
+		greater, lowerEqual, greaterEqual, as, assign,
+		leftParen, // '('
+		rightParen, // ')'
+		leftBrace, // '{'
+		rightBrace,// '}'
+		arrow,
+		comma, // ','
+		colon, // ':'
+		semicolon, // ';'
 		End
 	};
 
 	static std::map<std::string, type> keyWordTable;
+	
+	static type toVarType(type sth) {
+		if (sth == voidDecl) return Void;
+		else return sth == intDecl ? integer : Double;
+	}
 
+	static bool isBinary(type sth) {
+		return sth >= plus && sth <= as;
+	}
+
+	static bool isBoolOperator(type sth) {
+		return sth >= equal && sth <= greaterEqual;
+	}
+
+	static bool isNum(type sth) {
+		return sth >= integer && sth <= Bool;
+	}
 };
 
 std::map<std::string, Token::type> Token::keyWordTable = std::map<std::string, type>{
 	{"fn", Token::fn}, {"let", Token::let}, {"const", Token::Const},
 	{"as", Token::as}, {"while", Token::While},{"if", Token::If}, 
 	{"else", Token::Else}, {"return" ,Token::Return}, {"break", Token::Break},
-	{"continue", Token::Continue}
+	{"continue", Token::Continue}, {"void", Token::voidDecl}, {"int", Token::intDecl}, {"double", Token::doubleDecl}
 };
 
 class Tokenizer{
@@ -199,7 +222,7 @@ public:
 	}
 
 	pts nextToken(){
-		ASSERT(cur < token.size(), "should terminate after end of file");
+		ASSERT(cur < (int)token.size(), "should terminate after end of file");
 		return token[cur++];
 	}
 
@@ -216,21 +239,21 @@ public:
 	Tokenizer(){}
 };
 
-// int main(){
-// 	// Token test
-// 	using namespace std;
-// 	// freopen("test.in", "r", stdin);
-// 	std::string s;
-// 	char c = getchar();
-// 	while (c != EOF) {
-// 		s += c;
-// 		c = getchar();
-// 	}
+int main(){
+	// Token test
+	using namespace std;
+	// freopen("test.in", "r", stdin);
+	std::string s;
+	char c = getchar();
+	while (c != EOF) {
+		s += c;
+		c = getchar();
+	}
 
-// 	cout << "read\n" << s << endl;
-// 	cout << "end read\n" << endl;
-// 	Tokenizer ana = Tokenizer(s);
-// 	ana.work();
-// 	ana.show();
+	cout << "read\n" << s << endl;
+	cout << "end read\n" << endl;
+	Tokenizer ana = Tokenizer(s);
+	ana.work();
+	ana.show();
 	
-// }
+}
