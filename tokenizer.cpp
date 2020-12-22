@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include <vector>
 #include <map>
@@ -8,7 +9,7 @@ class Token{
 public:
 	enum type {
 		fn, let, Const, as, While, If, Else, Return, Break, Continue,
-		integer, identify, comment, 
+		integer, Double, identify, comment, 
 		string, plus, minus, mul,
 		div, assign, equal, notEqual, lower,
 		greater, lowerEqual, greaterEqual,
@@ -212,13 +213,13 @@ public:
 		this->s = s;
 	}
 
-	
+	Tokenizer(){}
 };
 
 int main(){
 	// Token test
 	using namespace std;
-	freopen("test.in", "r", stdin);
+	// freopen("test.in", "r", stdin);
 	std::string s;
 	char c = getchar();
 	while (c != EOF) {

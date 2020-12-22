@@ -1,5 +1,5 @@
 #include "analyser.cpp"
-#include "common.cpp"
+#include "common.h"
 #include "tokenizer.cpp"
 
 int main(int argc, char **argv){
