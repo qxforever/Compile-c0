@@ -24,7 +24,7 @@ private:
 public:
 	void analyse();
 
-	Analyser(Tokenizer tokenizer, IdentTable table) : token(tokenizer), table(table), inst(&table) {}
+	Analyser(Tokenizer tokenizer, IdentTable table) : token(tokenizer), table(table), inst(&table, 0){}
 };
 
 std::pair<Token::type, std::string> Analyser::nextToken() {
@@ -51,6 +51,10 @@ void Analyser::statement() {
 		unReadToken(), blockStat();
 	else if (it.first == Token::semicolon)
 		return;
+	else if (it.first == Token::End) {
+		ASSERT(table.blockDep() == 1, "Unexpected EOF");
+		exit(0);
+	}
 	else {
 		expression();
 		it = nextToken();
@@ -59,39 +63,46 @@ void Analyser::statement() {
 }
 
 void Analyser::expreStat() {
-	// @TODO
+	auto type = expression();
+	if (Token::isNum(type)) inst.pop();
 }
 
+// let_decl_stmt -> 'let' IDENT ':' ty ('=' expr)? ';'
 void Analyser::declareStat() {
 	auto ident = nextToken();
 	ASSERT(ident.first == Token::identify, "declaration no identifier");
 	ASSERT(nextToken().first == Token::colon, "declaration no colon");
 	auto type = nextToken();
 	ASSERT(type.first == Token::intDecl || type.first == Token::doubleDecl, "declaration no type name");
-	table.add(ident.second, 0, Token::toVarType(type.first), 0);
+	auto it = table.add(ident.second, 0, Token::toVarType(type.first), 0);
+	inst.loca(it.pos);
 
 	auto nxt = nextToken();
 	if (nxt.first == Token::assign) {
-		expression();
-		// TODOexpr
+		auto rightValue = expression();
+		ASSERT(rightValue == it.type, "mismatch assignment of variable");
 		nxt = nextToken();
 	}
+	else inst.push(uint64_t(0));
+	inst.store();
 	ASSERT(nxt.first == Token::semicolon, "expected ';' at end of declaration");
 }
 
+// const_decl_stmt -> 'const' IDENT ':' ty '=' expr ';'
 void Analyser::constDeclareStat() {
 	auto ident = nextToken();
 	ASSERT(ident.first == Token::identify, "declaration no identifier");
 	ASSERT(nextToken().first == Token::colon, "declaration no colon");
 	auto type = nextToken();
 	ASSERT(type.first == Token::integer || type.first == Token::Double, "declaration no type name");
-	table.add(ident.second, true, Token::toVarType(type.first), false);
+	auto it = table.add(ident.second, true, Token::toVarType(type.first), false);
+	inst.loca(it.pos);
 	auto nxt = nextToken();
 	ASSERT(nxt.first == Token::assign, "const variable must be initialized");
-	expression();
-	// TODOexpr
-	nxt = nextToken();
-	ASSERT(nxt.first == Token::semicolon, "expected ';' at end of declaration");
+	auto rightValue = expression();
+	inst.store();
+	ASSERT(it.type == rightValue, "mismatch assignment of variable");
+	ASSERT(nextToken().first == Token::semicolon, "expected ';' at end of declaration");
 }
 
 /**
@@ -100,7 +111,16 @@ void Analyser::constDeclareStat() {
 void Analyser::ifStat() {
 	auto rightVal = expression();
 	ASSERT(Token::isNum(rightVal), "conditions can't be " + std::to_string(rightVal));
+	
+	inst.br(0, 0); uint32_t pos = inst.getSize() - 1;
+	auto& jumpNext = inst.getLast();
+	// pre block
 	blockStat();
+	// 
+	inst.br(0);
+	auto& jumpEnd = inst.getLast(); uint32_t _pos = inst.getSize() - 1;
+	// jump next
+	jumpNext.key = std::to_string(inst.getSize() - pos - 1);
 	
 	auto nxt = nextToken();
 	if (nxt.first != Token::Else) {
@@ -114,16 +134,29 @@ void Analyser::ifStat() {
 		else
 			unReadToken(), blockStat();
 	}
+	// jump to end 
+	jumpEnd.key = std::to_string(inst.getSize() - _pos - 1);
 }
 
 void Analyser::whileStat() {
-	expression();
-	// TODOexpr
+	uint32_t _pos = inst.getSize() - 1;
+	auto rightVal = expression();
+	ASSERT(Token::isNum(rightVal), "conditions can't be " + std::to_string(rightVal));
+	
+	inst.br(0, 0); uint32_t pos = inst.getSize() - 1;
+	auto& jump = inst.getLast(); uint32_t pos = inst.getSize() - 1;
 	blockStat();
+	inst.br(0, 0);
+	auto& jumpBegin = inst.getLast(); uint32_t pos = inst.getSize() - 1;
+	jump.key = std::to_string(inst.getSize() - pos - 1);
+	jumpBegin.key = std::to_string(_pos - pos - 1);
 }
 
+
+//需要先写函数
 void Analyser::returnStat() {
-	;
+	// auto type = expression();
+
 }
 
 /**

@@ -1,9 +1,9 @@
 #pragma once
 #include "ident.cpp"
+#include <iostream>
 #include <string>
 #include <utility>
 #include <vector>
-#include <iostream>
 
 namespace std {
 string to_string(string s) {
@@ -49,7 +49,7 @@ private:
 	template <typename T> void _add(T u) { instructions.push_back(instruction(u)); }
 	IdentTable* p;
 	std::string name;
-	uint32_t id = 0, args = 0, retType = 0;
+	uint32_t id = 0, args = 0, retType = 0, noOut;
 
 public:
 	void push(uint64_t num) { _add("Push", num); }
@@ -85,11 +85,21 @@ public:
 	template <typename T> void custom(T u) { _add(u); }
 
 	void custom(std::string u, Token::type v) {
-		if (v == Token::Double) u += "F";
-		else if (v == Token::integer) u += "I";
-		else if (v == Token::lower) u += "Lt" // less than
-		else if (v == Token::greater) u += "gt" // greater than
+		if (v == Token::Double)
+			u += "F";
+		else if (v == Token::integer)
+			u += "I";
+		else if (v == Token::lower)
+			u += "Lt";	// less than
+		else if (v == Token::greater)
+			u += "gt";	// greater than
 		_add(u);
+	}
+
+	uint32_t getSize() { return instructions.size(); }
+
+	instruction& getLast() {
+		return instructions.back();
 	}
 
 	friend std::ostream& operator<<(std::ostream& out, Instructions& ins) {
@@ -97,7 +107,11 @@ public:
 		return out;
 	}
 
-	Instructions(IdentTable* p) { this->p = p; }
+	Instructions() { noOut = 1; };
+	Instructions(IdentTable* p, int flag = 1) {
+		this->p = p;
+		noOut = flag;
+	}
 	~Instructions() { std::cout << *this; }
 };
 

@@ -56,6 +56,8 @@ public:
 		ASSERT(newSize == (int)table.size(), "check the correctness of IdentTable::exitBlock()");
 	}
 
+	uint32_t blockDep() { return newIdent.size(); }
+
 	Ident& add(std::string name, bool isConst, Token::type type, bool isFunc) {
 		ASSERT(!newIdent.top().count(name), "redefine '" + name + '\'');
 		newIdent.top().insert(name);
