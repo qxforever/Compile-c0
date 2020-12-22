@@ -216,21 +216,21 @@ public:
 	Tokenizer(){}
 };
 
-int main(){
-	// Token test
-	using namespace std;
-	// freopen("test.in", "r", stdin);
-	std::string s;
-	char c = getchar();
-	while (c != EOF) {
-		s += c;
-		c = getchar();
-	}
+// int main(){
+// 	// Token test
+// 	using namespace std;
+// 	// freopen("test.in", "r", stdin);
+// 	std::string s;
+// 	char c = getchar();
+// 	while (c != EOF) {
+// 		s += c;
+// 		c = getchar();
+// 	}
 
-	cout << "read\n" << s << endl;
-	cout << "end read\n" << endl;
-	Tokenizer ana = Tokenizer(s);
-	ana.work();
-	ana.show();
+// 	cout << "read\n" << s << endl;
+// 	cout << "end read\n" << endl;
+// 	Tokenizer ana = Tokenizer(s);
+// 	ana.work();
+// 	ana.show();
 	
-}
+// }

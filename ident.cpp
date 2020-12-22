@@ -29,7 +29,7 @@ private:
 	std::unordered_map<std::string, int> table;	 // 存的变量的编号 idx, 在 ident[idx] 中找到当前标识符的所有位置
 	std::vector<std::stack<Ident>> ident;
 	std::stack<std::set<std::string>> newIdent;	 // 第 i 个 scope 里新建的变量, 全局变量下标为 0
-	int cnt = 0;
+	uint32_t cnt = 0;
 
 public:
 	void newBlock() { newIdent.push(std::set<std::string>()); }
@@ -50,7 +50,7 @@ public:
 		ASSERT(newSize == table.size(), "check the correctness of IdentTable::exitBlock()");
 	}
 
-	void add(std::string name, bool isConst, bool isFloat) {
+	Ident& add(std::string name, bool isConst, bool isFloat) {
 		ASSERT(!newIdent.top().count(name), "redefine '" + name + '\'');
 		newIdent.top().insert(name);
 		if (!table.count(name)) {
@@ -59,20 +59,24 @@ public:
 			std::cout << name << '\n';
 			ident.push_back(std::stack<Ident>());
 		}
+		auto ret = Ident(isConst, isFloat, newIdent.size() == 1, cnt++);
 		ident[table[name]].push(Ident(isConst, isFloat, newIdent.size() == 1, cnt++));
+		return ret;
 	}
 
-	Ident find(std::string name) {
+	Ident& find(std::string name) {
 		ASSERT(table.count(name) > 0, "\'" + name + "\' was not declared in this scope");
 		int idx = table[name];
 		return ident[idx].top();
 	}
 
+	uint32_t getSize() { return cnt; }
+
 	IdentTable() { newBlock(); }
 };
 
-int main() {
-	IdentTable table;
-	table.add("x", 0, 0);
-	table.add("x", 1, 1);
-}
+// int main() {
+// 	IdentTable table;
+// 	table.add("x", 0, 0);
+// 	table.add("x", 1, 1);
+// }

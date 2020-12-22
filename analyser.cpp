@@ -1,9 +1,11 @@
 #include "ident.cpp"
+#include "instruction.cpp"
 #include "tokenizer.cpp"
 class Analyser {
 private:
 	Tokenizer token;
 	IdentTable table;
+	Instructions inst;
 	std::pair<Token::type, std::string> nextToken();
 	void unReadToken();
 	void statement();
@@ -19,13 +21,7 @@ private:
 public:
 	void analyse();
 
-	void set(IdentTable table) {
-		this->table = table;
-	}
-
-	Analyser(Tokenizer tokenizer) {
-		this->token = tokenizer;
-	}
+	Analyser(Tokenizer tokenizer, IdentTable table) : token(tokenizer), table(table), inst(&table) {}
 };
 
 std::pair<Token::type, std::string> Analyser::nextToken() {
@@ -51,11 +47,11 @@ void Analyser::statement() {
 	else if (it.first == Token::leftBrace)
 		unReadToken(), blockStat();
 	else if (it.first == Token::semicolon)
-		return ;
+		return;
 	else {
 		expression();
 		it = nextToken();
-		ASSERT(it.first == Token::semicolon, "expected ';' at end of expression statement"); 
+		ASSERT(it.first == Token::semicolon, "expected ';' at end of expression statement");
 	}
 }
 
@@ -70,7 +66,7 @@ void Analyser::declareStat() {
 	auto type = nextToken();
 	ASSERT(type.first == Token::integer || type.first == Token::Double, "declaration no type name");
 	table.add(ident.second, 0, type.first == Token::Double);
-	
+
 	auto nxt = nextToken();
 	if (nxt.first == Token::equal) {
 		expression();
@@ -87,9 +83,9 @@ void Analyser::constDeclareStat() {
 	auto type = nextToken();
 	ASSERT(type.first == Token::integer || type.first == Token::Double, "declaration no type name");
 	table.add(ident.second, 1, type.first == Token::Double);
-	
+
 	auto nxt = nextToken();
-	ASSERT(nxt.first == Token::equal, "const variable must be initialized"); 
+	ASSERT(nxt.first == Token::equal, "const variable must be initialized");
 	expression();
 	// TODOexpr
 	nxt = nextToken();
@@ -101,15 +97,16 @@ void Analyser::ifStat() {
 	// TODOexpr
 	blockStat();
 	auto nxt = nextToken();
-	if (next.first != Token::Else) {
+	if (nxt.first != Token::Else) {
 		unReadToken();
-		return ;
+		return;
 	}
 	else {
 		nxt = nextToken();
 		if (nxt.first == Token::If)
 			ifStat();
-		else unReadToken(), blockStat();
+		else
+			unReadToken(), blockStat();
 	}
 }
 
@@ -117,6 +114,10 @@ void Analyser::whileStat() {
 	expression();
 	// TODOexpr
 	blockStat();
+}
+
+void Analyser::returnStat() {
+	;
 }
 
 /**
@@ -129,4 +130,9 @@ void Analyser::blockStat() {
 	auto it = nextToken();
 	ASSERT(it.first == Token::rightBrace, "expected '}' at end of input");
 	table.exitBlock();
+}
+
+void Analyser::expression() {
+	;
+	// @Todo
 }
