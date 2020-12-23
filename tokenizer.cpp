@@ -68,7 +68,7 @@ private:
 	std::string s;
 	using pts = std::pair<Token::type, std::string>;
 	std::vector<pts> token;
-	int cur;
+	int cur = 0;
 
 	bool isSpace(char c){
 		return isspace(c);
@@ -228,7 +228,7 @@ public:
 
 	void show() {
 		for(const auto &i : token) {
-			std::cout << i.first << " " << i.second  << '\n';
+			std::cerr << i.first << " " << i.second  << '\n';
 		}
 	}
 
@@ -245,26 +245,8 @@ public:
 	Tokenizer(std::string s){
 		s += '\n';
 		this->s = s;
+		work();
 	}
 
 	Tokenizer(){}
 };
-
-int main(){
-	// Token test
-	using namespace std;
-	// freopen("test.in", "r", stdin);
-	std::string s;
-	char c = getchar();
-	while (c != EOF) {
-		s += c;
-		c = getchar();
-	}
-
-	cout << "read\n" << s << endl;
-	cout << "end read\n" << endl;
-	Tokenizer ana = Tokenizer(s);
-	ana.work();
-	ana.show();
-	
-}

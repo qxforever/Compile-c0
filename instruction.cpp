@@ -32,11 +32,12 @@ string to_string(Token::type s) {
 	else if (s == Token::greater)
 		return "Ge";
 	else if (s == Token::global)
-		return "GloA";
+		return "GlobA";
 	else if (s == Token::local)
 		return "LocA";
 	else if (s == Token::param)
 		return "ArgA";
+	std::cerr << s << '\n';
 	assert(0);
 	return "";
 }
@@ -49,15 +50,23 @@ struct instruction {
 	template <typename T1, typename T2> instruction(T1 u, T2 v) {
 		this->key = std::to_string(u);
 		this->value = std::to_string(v);
+#ifdef debug
+		std::cerr << "key = " << key << " value = " << value << '\n';
+#endif
 	}
 
-	template <typename T> instruction(T u) { this->key = std::to_string(u); }
+	template <typename T> instruction(T u) {
+		this->key = std::to_string(u);
+#ifdef debug
+		std::cerr << "key = " << key << " value = " << value << '\n';
+#endif
+	}
 };
 
 std::ostream& operator<<(std::ostream& out, std::vector<instruction>& a) {
 	int sz = 0;
 	for (const auto& e : a) {
-		out << "    " << sz << " : " << e.key;
+		out << "    " << sz++ << ": " << e.key;
 		if (e.value != "") out << '(' + e.value + ')';
 		out << '\n';
 	}
@@ -114,7 +123,7 @@ public:
 
 	template <typename T> void custom(T u) { _add(u); }
 
-	template <typename T1, typename T2> void custom(T1 u, T2 v) { _add(u, v); }
+	template <typename T> void custom(T u, Token::type v) { _add(std::to_string(u) + std::to_string(v)); }
 
 	uint32_t getSize() { return instructions.size(); }
 
@@ -130,19 +139,13 @@ public:
 		this->p = p;
 		noOut = flag;
 	}
-	~Instructions() { std::cout << *this; }
+	~Instructions() {
+		if (!noOut) std::cout << *this;
+	}
 
 	void setVarCnt(uint32_t x) { varCnt = x; };
 	void setParamCnt(uint32_t x) { paramCnt = x; };
 	void setId(uint32_t x) { id = x; }
 	void setReturnType(Token::type x) { retType = x; }
+	void setNoOut(uint32_t x) { noOut = x; }
 };
-
-// int main() {
-// 	IdentTable tb;
-// 	tb.add("x", 1, 1);
-// 	Instructions w = Instructions(&tb);
-// 	w.load();
-// 	w.loca(14);
-// 	w.push(2.3);
-// }

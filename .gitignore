@@ -2,3 +2,5 @@
 .vscode/*
 *.in
 *.clang-format
+test.*
+*.md

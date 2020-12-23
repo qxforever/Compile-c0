@@ -35,7 +35,7 @@ private:
 	std::unordered_map<std::string, int> table;	 // 存的变量的编号 idx, 在 ident[idx] 中找到当前标识符的所有位置
 	std::vector<std::stack<Ident>> ident;
 	std::stack<std::set<std::string>> newIdent;	 // 第 i 个 scope 里新建的变量, 全局变量下标为 0
-	uint32_t cnt = 0, lastCnt, globalCnt, paramCnt;
+	uint32_t cnt = 0, lastCnt = 0, globalCnt = 0, paramCnt = 0, funCnt = 1;
 	bool funcBlock;	 // 是否刚刚进入函数
 
 public:
@@ -48,8 +48,7 @@ public:
 		int newSize = table.size();
 		for (auto i : set) {
 			int idx = table[i];
-			if (ident[idx].top().scope == Token::local)
-				cnt--;
+			if (ident[idx].top().scope == Token::local) cnt--;
 			ident[idx].pop();
 			if (ident[idx].empty()) {
 				newSize = std::min(newSize, idx + 1);
@@ -69,10 +68,13 @@ public:
 		if (!table.count(name)) {
 			int sz = table.size();
 			table[name] = sz;
-			std::cout << name << '\n';
+#ifdef debug
+			fprintf(stderr, "add new Var %s\n", name.c_str());
+#endif
 			ident.push_back(std::stack<Ident>());
 		}
 		auto& it = (newIdent.size() == 1) ? globalCnt : cnt;
+		if (isFunc) it = funCnt;
 		auto ret = Ident(isConst, type, newIdent.size() == 1, isFunc, it++, name);
 		ident[table[name]].push(ret);
 		return ident[table[name]].top();
@@ -86,6 +88,7 @@ public:
 
 	uint32_t getSize() { return cnt; }
 	uint32_t getLastSize() { return lastCnt; }
+	uint32_t getGlobalCnt() { return globalCnt; }
 	IdentTable() { newBlock(); }
 };
 
