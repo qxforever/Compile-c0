@@ -14,6 +14,33 @@ string to_string(const char* s) {
 	return string(s);
 }
 
+string to_string(Token::type s) {
+	if (s == Token::plus)
+		return "Add";
+	else if (s == Token::minus)
+		return "Sub";
+	else if (s == Token::mul)
+		return "Mul";
+	else if (s == Token::div)
+		return "Div";
+	else if (s == Token::integer)
+		return "I";
+	else if (s == Token::Double)
+		return "F";
+	else if (s == Token::lower)
+		return "Lt";
+	else if (s == Token::greater)
+		return "Ge";
+	else if (s == Token::global)
+		return "GloA";
+	else if (s == Token::local)
+		return "LocA";
+	else if (s == Token::param)
+		return "ArgA";
+	assert(0);
+	return "";
+}
+
 }  // namespace std
 
 struct instruction {
@@ -49,12 +76,15 @@ private:
 	template <typename T> void _add(T u) { instructions.push_back(instruction(u)); }
 	IdentTable* p;
 	std::string name;
-	uint32_t id = 0, args = 0, retType = 0, noOut;
+	uint32_t id = 0, varCnt = 0, paramCnt = 0, noOut;
+	Token::type retType;
 
 public:
 	void push(uint64_t num) { _add("Push", num); }
 
 	void push(double num) { _add("Push", *(uint64_t*)&num); }
+
+	void pushAddress(Token::type u, uint32_t off) { _add(u, off); }
 
 	void pop() { _add("Pop"); }
 
@@ -84,26 +114,14 @@ public:
 
 	template <typename T> void custom(T u) { _add(u); }
 
-	void custom(std::string u, Token::type v) {
-		if (v == Token::Double)
-			u += "F";
-		else if (v == Token::integer)
-			u += "I";
-		else if (v == Token::lower)
-			u += "Lt";	// less than
-		else if (v == Token::greater)
-			u += "gt";	// greater than
-		_add(u);
-	}
+	template <typename T1, typename T2> void custom(T1 u, T2 v) { _add(u, v); }
 
 	uint32_t getSize() { return instructions.size(); }
 
-	instruction& getLast() {
-		return instructions.back();
-	}
+	instruction& getLast() { return instructions.back(); }
 
 	friend std::ostream& operator<<(std::ostream& out, Instructions& ins) {
-		out << "fn [" << ins.id << "] " << ins.p->getSize() << ' ' << ins.args << " -> " << (ins.retType > 0) << " {\n" << ins.instructions << "}\n";
+		out << "fn [" << ins.id << "] " << ins.varCnt << ' ' << ins.paramCnt << " -> " << (ins.retType != Token::Void) << " {\n" << ins.instructions << "}\n";
 		return out;
 	}
 
@@ -113,6 +131,11 @@ public:
 		noOut = flag;
 	}
 	~Instructions() { std::cout << *this; }
+
+	void setVarCnt(uint32_t x) { varCnt = x; };
+	void setParamCnt(uint32_t x) { paramCnt = x; };
+	void setId(uint32_t x) { id = x; }
+	void setReturnType(Token::type x) { retType = x; }
 };
 
 // int main() {

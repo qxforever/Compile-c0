@@ -11,21 +11,21 @@
 
 struct Ident {
 	bool isConst, isGlobal, isFunc;
-	Token::type type;
+	Token::type type, scope;
 	int pos;
-	std::vector<int> params;
+	std::vector<Token::type> params;
 	std::string name;
 
 	Ident(bool isConst, Token::type type, bool isGlobal, bool isFunc, int pos, std::string name) {
 		this->isConst = isConst;
 		this->type = type;
-		this->isGlobal = isGlobal;
+		this->scope = isGlobal ? Token::global : Token::local;
 		this->isFunc = isFunc;
 		this->pos = pos;
 		this->name = name;
 	}
 
-	void add(int x) { params.push_back(x); }
+	void _add(Token::type x) { params.push_back(x); }
 
 	void print() { std::cout << isConst << ' ' << type << ' ' << isGlobal << ' ' << pos << '\n'; }
 };
@@ -35,17 +35,21 @@ private:
 	std::unordered_map<std::string, int> table;	 // 存的变量的编号 idx, 在 ident[idx] 中找到当前标识符的所有位置
 	std::vector<std::stack<Ident>> ident;
 	std::stack<std::set<std::string>> newIdent;	 // 第 i 个 scope 里新建的变量, 全局变量下标为 0
-	uint32_t cnt = 0;
+	uint32_t cnt = 0, lastCnt, globalCnt, paramCnt;
+	bool funcBlock;	 // 是否刚刚进入函数
 
 public:
 	void newBlock() { newIdent.push(std::set<std::string>()); }
-
+	void newFunc() { newBlock(), cnt = paramCnt = lastCnt = 0; }
 	void exitBlock() {
+		lastCnt = std::max(lastCnt, cnt);
 		auto set = newIdent.top();
 		newIdent.pop();
 		int newSize = table.size();
 		for (auto i : set) {
 			int idx = table[i];
+			if (ident[idx].top().scope == Token::local)
+				cnt--;
 			ident[idx].pop();
 			if (ident[idx].empty()) {
 				newSize = std::min(newSize, idx + 1);
@@ -58,6 +62,7 @@ public:
 
 	uint32_t blockDep() { return newIdent.size(); }
 
+	// 参数变量加入的时候 手动控制一下吧 没设计好
 	Ident& add(std::string name, bool isConst, Token::type type, bool isFunc) {
 		ASSERT(!newIdent.top().count(name), "redefine '" + name + '\'');
 		newIdent.top().insert(name);
@@ -67,7 +72,8 @@ public:
 			std::cout << name << '\n';
 			ident.push_back(std::stack<Ident>());
 		}
-		auto ret = Ident(isConst, type, newIdent.size() == 1, isFunc, cnt++, name);
+		auto& it = (newIdent.size() == 1) ? globalCnt : cnt;
+		auto ret = Ident(isConst, type, newIdent.size() == 1, isFunc, it++, name);
 		ident[table[name]].push(ret);
 		return ident[table[name]].top();
 	}
@@ -79,7 +85,7 @@ public:
 	}
 
 	uint32_t getSize() { return cnt; }
-
+	uint32_t getLastSize() { return lastCnt; }
 	IdentTable() { newBlock(); }
 };
 

@@ -3,17 +3,19 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <cassert>
 #include "common.cpp"
 
 class Token{
 public:
 	enum type {
 		fn, let, Const, While, If, Else, Return, Break, Continue,
-		voidDecl, intDecl, doubleDecl,
+		voidDecl, intDecl, doubleDecl, // 'voidDecl' means $\test{void}$ in input.  
 		Void, integer, Double, Bool, identify, comment, 
 		string, plus, minus, mul,
 		div, equal, notEqual, lower,
 		greater, lowerEqual, greaterEqual, as, assign,
+		global, local, param,
 		leftParen, // '('
 		rightParen, // ')'
 		leftBrace, // '{'
@@ -28,6 +30,7 @@ public:
 	static std::map<std::string, type> keyWordTable;
 	
 	static type toVarType(type sth) {
+		assert(isFuncType(sth));
 		if (sth == voidDecl) return Void;
 		else return sth == intDecl ? integer : Double;
 	}
@@ -42,6 +45,14 @@ public:
 
 	static bool isNum(type sth) {
 		return sth >= integer && sth <= Bool;
+	}
+
+	static bool isFuncType(type sth) {
+		return sth >= voidDecl && sth <= doubleDecl;
+	}
+
+	static bool isNumOperator(type sth) {
+		return sth >= plus && sth <= div;
 	}
 };
 
