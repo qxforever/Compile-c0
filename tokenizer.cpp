@@ -105,11 +105,26 @@ public:
 				i = j - 1;
 			}
 			else if (isDigit(s[i])) {
+				// Integer
 				while (isDigit(s[j])) {
-					tmp += s[j];
-					j++;
+					tmp += s[j++];
 				}
-				token.push_back({Token::integer, tmp});
+				// Double 
+				if (s[j] == '.') {
+					tmp += s[j++];
+					int cnt = 0;
+					while (isdigit(s[j])) tmp += s[j++], cnt++;
+					ASSERT(cnt > 0, "at least 1 digit after '.'");
+					if (s[j] == 'e') {
+						tmp += s[j++];
+						if (s[j] == '+' || s[j] == '-') tmp += s[j++];
+						cnt = 0;
+						while (isdigit(s[j])) tmp += s[j++], cnt++;
+						ASSERT(cnt > 0, "at least 1 digit after 'e'");
+					}
+					token.push_back({Token::Double, tmp});
+				}
+				else token.push_back({Token::integer, tmp});
 				i = j - 1;
 			}
 			else if (s[i] == '\"') {
@@ -190,7 +205,7 @@ public:
 			else if (s[i] == '/') {
 				if (s[i + 1] == '/') {
 					int j = i + 2;
-					while (j < len || !isspace(s[j])) j++;
+					while (j < len && s[j] != '\n') j++;
 					i = j;
 				}
 				else token.push_back({Token::div, "/"});

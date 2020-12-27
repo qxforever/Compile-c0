@@ -65,6 +65,10 @@ void Analyser::statement() {
 		ASSERT(table.blockDep() == 1, "Unexpected EOF");
 		exit(0);
 	}
+	else if (it.first == Token::rightBrace) {
+		unReadToken();
+		return ;
+	}
 	else {
 		unReadToken();
 		expreStat();
@@ -152,6 +156,7 @@ void Analyser::ifStat() {
 void Analyser::whileStat() {
 	uint32_t _pos = inst->getSize() - 1;
 	auto rightVal = expression();
+	std::cerr << " ? "  << '\n';
 	ASSERT(Token::isNum(rightVal), "conditions can't be " + rightVal);
 
 	inst->br(0, 0);
@@ -160,8 +165,8 @@ void Analyser::whileStat() {
 	blockStat();
 	inst->br(0, 0);
 	auto& jumpBegin = inst->getLast();
-	jump.value = std::to_string(inst->getSize() - pos - 1);
-	jumpBegin.value = std::to_string(_pos - pos - 1);
+	jump.value = std::to_string(int32_t(inst->getSize() - pos - 1));
+	jumpBegin.value = std::to_string(int32_t(_pos - pos - 1));
 }
 
 // @Todo
@@ -178,7 +183,7 @@ void Analyser::returnStat() {
 		inst->store();
 	}
 	else
-		ERROR("illeagl return call");
+		ERROR("Invalid curFuncType");
 	inst->ret();
 }
 
@@ -186,9 +191,10 @@ void Analyser::returnStat() {
  * have not read '{'
  **/
 void Analyser::blockStat(int flag) {
-	ASSERT(nextToken().first == Token::leftBrace, "expected block statement after control stat or function");
-	if (flag) table.newBlock();
 	auto nxt = nextToken();
+	ASSERT(nxt.first == Token::leftBrace, "expected block statement after control stat or function, find " + nxt.second);
+	if (flag) table.newBlock();
+	nextToken();
 	while (nxt.first != Token::rightBrace) {
 		unReadToken();
 		statement();
@@ -276,11 +282,12 @@ Token::type Analyser::factor() {
 		if (it.isFunc) {
 			type = it.type;						   //
 			inst->stackalloc(type != Token::Void);  // 申请空间
+			std::cerr << it.name << " " << it.type << '\n';
 			nxt = nextToken();
 			ASSERT(nxt.first == Token::leftParen, "expected '(' but find " + nxt.second);
 			nxt = nextToken();
 			size_t cnt = 0;
-			while (nxt.first != Token::rightParen) {
+			while (1) {
 				ASSERT(cnt < it.params.size(), "too many params in " + it.name);
 				Token::type type = Token::Void;
 				if (nxt.first == Token::identify) {
@@ -297,7 +304,10 @@ Token::type Analyser::factor() {
 				else
 					ERROR(nxt.second + " can't be param");
 				ASSERT(type == it.params[cnt], nxt.second + " type mismatched with function param");
+				nxt = nextToken();
 				cnt++;
+				if (nxt.first == Token::rightParen) break;
+				nxt = nextToken();
 			}
 			ASSERT(cnt == it.params.size(), "too few params in " + it.name);
 			inst->call(it.pos);
@@ -345,16 +355,17 @@ Token::type Analyser::factor() {
 		return Token::Void;
 	}
 	nxt = nextToken();
-	if (nxt.first == Token::as) {
+	while (nxt.first == Token::as) {
 		auto next = nextToken();
 		ASSERT(next.first == Token::intDecl || next.first == Token::doubleDecl, "expected 'int' or double after 'as'");
+		next.first = Token::toVarType(next.first);
 		char from = type == Token::integer ? 'I' : 'F';
 		char to = next.first == Token::integer ? 'I' : 'F';
 		if (from != to) inst->custom(std::string("") + from + "To" + to);
-		type = nxt.first;
+		type = next.first;
+		nxt = nextToken();
 	}
-	else
-		unReadToken();
+	unReadToken();
 	return type;
 }
 
@@ -385,8 +396,9 @@ void Analyser::program() {
 void Analyser::function() {
 	auto nxt = nextToken();
 	ASSERT(nxt.first == Token::identify, "expected identifier after 'fn'");
-	auto _func = table.add(nxt.second, 0, Token::Void, 1);
-
+	auto& _func = table.add(nxt.second, 0, Token::Void, 1);
+	std::string _name = nxt.second;
+	std::cerr << &_func << '\n';
 	insts.push_back(Instructions(&table));	// 函数内部需要单独的 instructions
 	inst = &insts.back();
 	inst->setNoOut(0);
@@ -397,6 +409,7 @@ void Analyser::function() {
 
 	nxt = nextToken();
 	// , , , 其实是到 ) 结束的. 读取参数
+	std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
 	std::vector<std::tuple<std::string, Token::type, bool>> funParams;
 	while (nxt.first == Token::identify || nxt.first == Token::Const) {
 		bool isConst = 0;
@@ -406,17 +419,18 @@ void Analyser::function() {
 			unReadToken();
 		auto paramDeclare = [&](bool isConst) {
 			auto nxt = nextToken();
-			ASSERT(nxt.first == Token::identify, "lazy to write");
+			ASSERT(nxt.first == Token::identify, "lazy to write1");
 			auto _nxt = nextToken();
-			ASSERT(nxt.first == Token::colon, "lazy to write");
+			ASSERT(_nxt.first == Token::colon, "lazy to write2" + std::to_string(_nxt.second));
 			auto __nxt = nextToken();
-			ASSERT(nxt.first == Token::integer || nxt.first == Token::Double, "..");
-			funParams.push_back(std::make_tuple(nxt.second, __nxt.first, isConst));
+			ASSERT(__nxt.first == Token::intDecl || __nxt.first == Token::doubleDecl, __nxt.second);
+			funParams.push_back(std::make_tuple(nxt.second, Token::toVarType(__nxt.first), isConst));
 		};
 		paramDeclare(isConst);
 		nxt = nextToken();
-		ASSERT(nxt.first == Token::comma || nxt.first == Token::rightParen, "unexpected " + nxt.second + " in function param list");  // , or ')'
+		ASSERT(nxt.first == Token::comma || nxt.first == Token::rightParen, "unexpected " + nxt.second + " in function param list!");  // , or ')'
 		if (nxt.first == Token::rightParen) break;
+		nxt = nextToken();
 	}
 	ASSERT(nxt.first == Token::rightParen, "unexpected " + nxt.second + " in function param list");	 // ')'
 
@@ -428,7 +442,9 @@ void Analyser::function() {
 	auto type = Token::toVarType(nxt.first);
 	_func.type = type;
 	inst->setReturnType(type);
+	std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
 	if (_func.type != Token::Void) table.add("__ReturnValue.", 0, _func.type, 0);
+	std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
 	for (const auto e : funParams) {
 		auto __it = table.add(std::get<0>(e), std::get<2>(e), std::get<1>(e), 0);
 		_func._add(std::get<1>(e));
@@ -436,7 +452,8 @@ void Analyser::function() {
 	}
 	inst->setParamCnt(funParams.size());
 	uint32_t _tableSize = table.getSize();
-	curFuncType = _func.type;
+	curFuncType = type;
+	std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
 	blockStat(0);
 	uint32_t __tableSize = table.getLastSize();
 

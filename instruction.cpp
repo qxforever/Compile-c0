@@ -130,10 +130,10 @@ public:
 	instruction& getLast() { return instructions.back(); }
 
 	friend std::ostream& operator<<(std::ostream& out, Instructions& ins) {
-		out << "fn [" << ins.id << "] " << ins.varCnt << ' ' << ins.paramCnt << " -> " << (ins.retType != Token::Void) << " {\n" << ins.instructions << "}\n";
+		out << "fn [" << ins.id << "] " << ins.varCnt << ' ' << ins.paramCnt << " -> " << (ins.retType != Token::Void) << " {\n" << ins.instructions << "}\n\n";
 		return out;
 	}
-
+	
 	Instructions() { noOut = 1; };
 	Instructions(IdentTable* p, int flag = 1) {
 		this->p = p;
