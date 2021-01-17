@@ -10,7 +10,7 @@ class Token{
 public:
 	enum type {
 		fn, let, Const, While, If, Else, Return, Break, Continue,
-		voidDecl, intDecl, doubleDecl, // 'voidDecl' means $\test{void}$ in input.  
+		voidDecl, intDecl, doubleDecl, // 'voidDecl' means $\text{void}$ in input.  
 		Void, integer, Double, Bool, identify, comment, 
 		string, plus, minus, mul,
 		div, equal, notEqual, lower,
@@ -164,7 +164,7 @@ public:
 					ERROR("\" does not match");
 				}
 				std::string ss;
-				for (auto i : tmp) ss += (char)i;
+				for (int i = 1; i < (int)tmp.size() - 1; i++) ss += (char)tmp[i];
 				token.push_back({Token::string, ss});
 				i = j;
 			}
@@ -252,9 +252,13 @@ public:
 		return token[cur++];
 	}
 
+	pts& preToken() {
+		return token[cur - 1];
+	}
+
 	void unRead(){
 		cur--;
-		ASSERT(cur > 0, "current token pos will be -1");
+		ASSERT(cur >= 0, "current token pos will be -1");
 	}
 
 	Tokenizer(std::string s){

@@ -29,7 +29,7 @@ struct Ident {
 	bool isConst, isGlobal, isFunc;
 	Token::type type, scope;
 	int pos;
-	std::vector<Token::type> params;
+	std::deque<Token::type> params;
 	std::string name;
 
 	Ident(bool isConst, Token::type type, bool isGlobal, bool isFunc, int pos, std::string name) {
@@ -53,7 +53,7 @@ struct Ident {
 class IdentTable {
 private:
 	std::unordered_map<std::string, int> table;	 // 存的变量的编号 idx, 在 ident[idx] 中找到当前标识符的所有位置
-	std::deque<std::stack<Ident>> ident; // Todo
+	std::deque<std::deque<Ident>> ident; // Todo
 	std::stack<std::set<std::string>> newIdent;	 // 第 i 个 scope 里新建的变量, 全局变量下标为 0
 	uint32_t cnt = 0, lastCnt = 0, globalCnt = 0, paramCnt = 0, funCnt = 1;
 	bool funcBlock;	 // 是否刚刚进入函数
@@ -68,15 +68,15 @@ public:
 		int newSize = table.size();
 		for (auto i : set) {
 			int idx = table[i];
-			if (ident[idx].top().scope == Token::local) cnt--;
-			ident[idx].pop();
+			if (ident[idx].back().scope == Token::local) cnt--;
+			ident[idx].pop_back();
 			if (ident[idx].empty()) {
 				newSize = std::min(newSize, idx);
 				table.erase(i);
 			}
 		}
 		// ident.resize(table.size());
-		while (ident.size() > newSize) ident.pop_back();
+		while ((int)ident.size() > newSize) ident.pop_back();
 		ASSERT(newSize == (int)table.size(), "check the correctness of IdentTable::exitBlock()");
 	}
 
@@ -89,10 +89,7 @@ public:
 		if (!table.count(name)) {
 			int sz = table.size();
 			table[name] = sz;
-#ifdef debug
-			if (name == "main") std::cout << newIdent.size() << '\n';
-#endif
-			ident.push_back(std::stack<Ident>());
+			ident.push_back(std::deque<Ident>());
 		}
 		auto& it = isFunc ? funCnt : ((newIdent.size() == 1) ? globalCnt : cnt);
 		it++;
@@ -100,14 +97,19 @@ public:
 		if (newIdent.size() == 1) val = globalCnt + funCnt - 1;
 		else val = cnt - 1;
 		auto ret = Ident(isConst, type, newIdent.size() == 1, isFunc, val, name);
-		ident[table[name]].push(ret);
-		return ident[table[name]].top();
+		ident[table[name]].push_back(ret);
+		return ident[table[name]].back();
+	}
+
+	int _add_string() {
+		globalCnt++;
+		return globalCnt + funCnt - 1;
 	}
 
 	Ident& find(std::string name) {
 		ASSERT(table.count(name) > 0, "\'" + name + "\' was not declared in this scope");
 		int idx = table[name];
-		return ident[idx].top();
+		return ident[idx].back();
 	}
 
 	uint32_t getSize() { return cnt; }

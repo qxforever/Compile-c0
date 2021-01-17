@@ -33,7 +33,7 @@ public:
 		return insts;
 	}
 
-	Analyser(Tokenizer tokenizer, IdentTable table) : token(tokenizer), table(table) {
+	Analyser(Tokenizer tokenizer, IdentTable &table) : token(tokenizer), table(table) {
 		insts.reserve(10010);
 		insts.push_back(Instructions(&table));
 		inst = &insts[0];
@@ -160,7 +160,7 @@ void Analyser::ifStat() {
 void Analyser::whileStat() {
 	uint32_t _pos = inst->getSize() - 1;
 	auto rightVal = expression();
-	std::cerr << " ? "  << '\n';
+	// std::cerr << " ? "  << '\n';
 	ASSERT(Token::isNum(rightVal), "conditions can't be " + rightVal);
 
 	inst->br(0, 0);
@@ -286,7 +286,7 @@ Token::type Analyser::factor() {
 		if (it.isFunc) {
 			type = it.type;						   //
 			inst->stackalloc(type != Token::Void);  // 申请空间
-			std::cerr << it.name << " " << it.type << '\n';
+			// std::cerr << it.name << " " << it.type << '\n';
 			nxt = nextToken();
 			ASSERT(nxt.first == Token::leftParen, "expected '(' but find " + nxt.second);
 			nxt = nextToken();
@@ -314,7 +314,8 @@ Token::type Analyser::factor() {
 				nxt = nextToken();
 			}
 			ASSERT(cnt == it.params.size(), "too few params in " + it.name);
-			inst->call(it.pos);
+			if (it.pos > 8) inst->call(it.pos);
+			else inst->callname(it.pos);
 		}
 		// isVariable
 		else {
@@ -386,7 +387,7 @@ void Analyser::program() {
 		nxt = nextToken();
 	}
 	inst = &insts[0];
-	ASSERT(nxt.first == Token::End, "Only declare statement or function appear in global");
+	ASSERT(nxt.first == Token::End, "Only declare statement or function appear in global, get " + nxt.second);
 	auto __main__ = table.find("main");
 	ASSERT(__main__.isFunc, "no main function");
 	inst->stackalloc(0);
@@ -412,7 +413,7 @@ void Analyser::function() {
 
 	nxt = nextToken();
 	// , , , 其实是到 ) 结束的. 读取参数
-	std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
+	// std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
 	std::vector<std::tuple<std::string, Token::type, bool>> funParams;
 	while (nxt.first == Token::identify || nxt.first == Token::Const) {
 		bool isConst = 0;
@@ -445,9 +446,9 @@ void Analyser::function() {
 	auto type = Token::toVarType(nxt.first);
 	_func.type = type;
 	inst->setReturnType(type);
-	std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
+	// std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
 	if (_func.type != Token::Void) table.add("__ReturnValue.", 0, _func.type, 0);
-	std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
+	// std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
 	for (const auto &e : funParams) {
 		auto __it = table.add(std::get<0>(e), std::get<2>(e), std::get<1>(e), 0);
 		_func._add(std::get<1>(e));
@@ -456,7 +457,7 @@ void Analyser::function() {
 	inst->setParamCnt(funParams.size());
 	uint32_t _tableSize = table.getSize();
 	curFuncType = type;
-	std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
+	// std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
 	blockStat(0);
 	uint32_t __tableSize = table.getLastSize();
 

@@ -6,7 +6,6 @@
 int main() {
 	global.push_back(Global(1, 6, "_start"));
 	freopen("test.in", "r", stdin);
-	freopen("test.log", "w", stderr);
 	std::string s;
 	char c;
 	while ((c = getchar()) != EOF)  s += c;
@@ -14,8 +13,54 @@ int main() {
 	std::cerr << s << '\n';
 #endif
 	Tokenizer tokenizer(s);
+#ifdef debug
+	freopen("test.log", "w", stderr);
 	tokenizer.show();
+#endif
+// init std Function
 	IdentTable table;
+	table.add("getint", 1, Token::integer, 1);
+	table.add("getdouble", 1, Token::Double, 1);
+	table.add("getchar", 1, Token::integer, 1);
+	table.add("putint", 1, Token::Void, 1);
+	auto &fun1 = table.find("putint");
+	fun1.params.push_back(Token::integer);
+	table.add("putdouble", 1, Token::Void, 1);
+	auto &fun2 = table.find("putdouble");
+	fun2.params.push_back(Token::Double);
+	table.add("putchar", 1, Token::Void, 1);
+	auto &fun3 = table.find("putchar");
+	fun3.params.push_back(Token::integer);
+	table.add("putstr", 1, Token::Void, 1);
+	auto &fun4 = table.find("putstr");
+	fun4.params.push_back(Token::integer);
+	table.add("putln", 1, Token::Void, 1);
+
+// init string 
+
+	int sz = 0;
+	std::map<std::string, int> map;
+	auto nxt = tokenizer.nextToken();
+	while (nxt.first != Token::End) {
+		if (nxt.first == Token::string) {
+			if (map.count(nxt.second) == 0) {
+				int pos = table._add_string();
+				map[nxt.second] = pos;
+				global.push_back(Global(1, nxt.second.size(), nxt.second));
+			}
+			tokenizer.preToken().first = Token::integer;
+			tokenizer.preToken().second = std::to_string(map[nxt.second]);
+			nxt = tokenizer.preToken();
+		}
+		sz++;
+		nxt = tokenizer.nextToken();
+	}
+	while (sz >= 0) tokenizer.unRead(), sz--;
+
+#ifdef debug
+	tokenizer.show();
+#endif
+
 	Analyser analyser(tokenizer, table);
 	analyser.analyse();
 #ifndef ONLINE_JUDGE
@@ -40,7 +85,7 @@ int main() {
 	uint32_t magic = 0x72303b3e, version = 0x00000001;
 	Write(&magic, 4);
 	Write(&version, 4);
-	int sz = global.size();
+	sz = global.size();
 	Write(&sz, 4);
 
 	for (auto e : global) {
