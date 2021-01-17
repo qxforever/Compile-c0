@@ -10,6 +10,9 @@ int main() {
 	std::string s;
 	char c;
 	while ((c = getchar()) != EOF)  s += c;
+#ifdef ONLINE_JUDGE
+	std::cerr << s << '\n';
+#endif
 	Tokenizer tokenizer(s);
 	tokenizer.show();
 	IdentTable table;
