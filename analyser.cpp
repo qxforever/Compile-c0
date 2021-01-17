@@ -29,11 +29,15 @@ private:
 public:
 	void analyse() { program(); }
 
+	std::vector<Instructions>& getInst() {
+		return insts;
+	}
+
 	Analyser(Tokenizer tokenizer, IdentTable table) : token(tokenizer), table(table) {
 		insts.reserve(10010);
 		insts.push_back(Instructions(&table));
 		inst = &insts[0];
-		inst->setNoOut(0), inst->setReturnType(Token::Void), inst->setId(0);  // _start'
+		inst->setNoOut(0), inst->setReturnType(Token::Void), inst->setId(0), inst->setName("_start");  // _start'
 	}
 };
 
@@ -398,7 +402,6 @@ void Analyser::function() {
 	ASSERT(nxt.first == Token::identify, "expected identifier after 'fn'");
 	auto& _func = table.add(nxt.second, 0, Token::Void, 1);
 	std::string _name = nxt.second;
-	std::cerr << &_func << '\n';
 	insts.push_back(Instructions(&table));	// 函数内部需要单独的 instructions
 	inst = &insts.back();
 	inst->setNoOut(0);
@@ -445,7 +448,7 @@ void Analyser::function() {
 	std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
 	if (_func.type != Token::Void) table.add("__ReturnValue.", 0, _func.type, 0);
 	std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
-	for (const auto e : funParams) {
+	for (const auto &e : funParams) {
 		auto __it = table.add(std::get<0>(e), std::get<2>(e), std::get<1>(e), 0);
 		_func._add(std::get<1>(e));
 		__it.scope = Token::param;

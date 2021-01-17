@@ -4,3 +4,4 @@
 *.clang-format
 test.*
 *.md
+*.out

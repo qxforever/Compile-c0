@@ -10,6 +10,21 @@
 #include <vector>
 #include <deque>
 
+struct Global {
+	int8_t isConst;
+	int64_t size;
+	std::string val;
+
+	Global() {}
+	Global(bool Const, int64_t sz, std::string v) {
+		isConst = Const;
+		size = sz;
+		val = v;
+	}
+};
+
+std::vector<Global> global;
+
 struct Ident {
 	bool isConst, isGlobal, isFunc;
 	Token::type type, scope;
@@ -24,6 +39,10 @@ struct Ident {
 		this->isFunc = isFunc;
 		this->pos = pos;
 		this->name = name;
+		this->isGlobal = isGlobal;
+		if (isGlobal) {
+			global.push_back(Global(isFunc ? 1 : 0, isFunc ? name.size() : 8, isFunc ? name : ""));
+		}
 	}
 
 	void _add(Token::type x) { params.push_back(x); }
@@ -71,17 +90,17 @@ public:
 			int sz = table.size();
 			table[name] = sz;
 #ifdef debug
-			fprintf(stderr, "add new Var %s\n", name.c_str());
+			if (name == "main") std::cout << newIdent.size() << '\n';
 #endif
 			ident.push_back(std::stack<Ident>());
 		}
 		auto& it = isFunc ? funCnt : ((newIdent.size() == 1) ? globalCnt : cnt);
-		auto ret = Ident(isConst, type, newIdent.size() == 1, isFunc, it++, name);
+		it++;
+		int val = 0;
+		if (newIdent.size() == 1) val = globalCnt + funCnt - 1;
+		else val = cnt - 1;
+		auto ret = Ident(isConst, type, newIdent.size() == 1, isFunc, val, name);
 		ident[table[name]].push(ret);
-#ifdef debug
-		fprintf(stderr, "new var store in %p\n", &ident[table[name]].top());
-		fprintf(stderr, "addr of vec[0] %p\n", &ident[0]);
-#endif
 		return ident[table[name]].top();
 	}
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "ident.cpp"
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -15,8 +16,7 @@ string to_string(const char* s) {
 }
 
 string to_string(Token::type s) {
-	if (s == Token::plus)
-		return "Add";
+	if (s == Token::plus) return "Add";
 	else if (s == Token::minus)
 		return "Sub";
 	else if (s == Token::mul)
@@ -87,6 +87,7 @@ private:
 	std::string name;
 	uint32_t id = 0, varCnt = 0, paramCnt = 0, noOut;
 	Token::type retType;
+	static std::ofstream out;
 
 public:
 	void push(uint64_t num) { _add("Push", num); }
@@ -133,14 +134,17 @@ public:
 		out << "fn [" << ins.id << "] " << ins.varCnt << ' ' << ins.paramCnt << " -> " << (ins.retType != Token::Void) << " {\n" << ins.instructions << "}\n\n";
 		return out;
 	}
-	
-	Instructions() { noOut = 1; };
+
+	Instructions() {
+		noOut = 1;
+		assert(0);
+	};
 	Instructions(IdentTable* p, int flag = 1) {
 		this->p = p;
 		noOut = flag;
 	}
 	~Instructions() {
-		if (!noOut) std::cout << *this;
+		if (!noOut) out << *this;
 	}
 
 	void setVarCnt(uint32_t x) { varCnt = x; };
@@ -148,4 +152,13 @@ public:
 	void setId(uint32_t x) { id = x; }
 	void setReturnType(Token::type x) { retType = x; }
 	void setNoOut(uint32_t x) { noOut = x; }
+	void setName(std::string s) { name = s; }
+
+
+	void get(int& a1, int& a2, int& a3, int& a4, int& a5, std::vector<instruction> &w) { 
+		a1 = id, a2 = retType != Token::Void, a3 = paramCnt, a4 = varCnt, a5 = (int)instructions.size();
+		w = instructions;
+	}
 };
+
+std::ofstream Instructions::out("debugger.out");
