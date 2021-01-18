@@ -61,7 +61,7 @@ private:
 
 public:
 	void newBlock() { newIdent.push(std::set<std::string>()); }
-	void newFunc() { newBlock(), cnt = paramCnt = lastCnt = 0; }
+	void newFunc() { newBlock(), cnt = lastCnt = 0, paramCnt = 1; }
 	void exitBlock() {
 		lastCnt = std::max(lastCnt, cnt);
 		auto set = newIdent.top();
@@ -84,7 +84,7 @@ public:
 	uint32_t blockDep() { return newIdent.size(); }
 
 	// 参数变量加入的时候 手动控制一下吧 没设计好
-	Ident& add(std::string name, bool isConst, Token::type type, bool isFunc) {
+	Ident& add(std::string name, bool isConst, Token::type type, bool isFunc, bool isParam = false) {
 		ASSERT(!newIdent.top().count(name), "redefine '" + name + '\'');
 		newIdent.top().insert(name);
 		if (!table.count(name)) {
@@ -92,10 +92,13 @@ public:
 			table[name] = sz;
 			ident.push_back(std::deque<Ident>());
 		}
-		auto& it = isFunc ? funCnt : ((newIdent.size() == 1) ? globalCnt : cnt);
+		auto& it = isParam ? paramCnt : (isFunc ? funCnt : ((newIdent.size() == 1) ? globalCnt : cnt));
 		it++;
 		int val = 0;
-		if (isFunc) {
+		if (isParam) {
+			val = paramCnt - 1;
+		}
+		else if (isFunc) {
 			if (funCnt <= 9) val = funCnt - 1;
 			else val = funCnt - 9; 
 		}

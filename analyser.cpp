@@ -280,9 +280,9 @@ Token::type Analyser::item() {
 	auto leftValue = factor();
 	auto nxt = nextToken();
 	while (nxt.first == Token::mul || nxt.first == Token::div) {
-		auto rightValue = item();
-		ASSERT(leftValue == rightValue, "compare in different type");
+		auto rightValue = factor();
 		inst->custom(nxt.first, rightValue);
+		ASSERT(leftValue == rightValue, "compare in different type");
 		nxt = nextToken();
 	}
 	unReadToken();
@@ -465,10 +465,10 @@ void Analyser::function() {
 	_func.type = type;
 	inst->setReturnType(type);
 	// std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
-	if (_func.type != Token::Void) table.add("__ReturnValue.", 0, _func.type, 0);
+	// if (_func.type != Token::Void) table.add("__ReturnValue.", 0, _func.type, 0);
 	// std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
 	for (const auto &e : funParams) {
-		auto &__it = table.add(std::get<0>(e), std::get<2>(e), std::get<1>(e), 0);
+		auto &__it = table.add(std::get<0>(e), std::get<2>(e), std::get<1>(e), 0, 1);
 		_func._add(std::get<1>(e));
 		__it.scope = Token::param;
 	}
