@@ -3,6 +3,7 @@
 #include "instruction.cpp"
 #include "ident.cpp"
 #include <iostream>
+#include <ctime>
 
 #ifdef ONLINE_JUDGE
 #define _byteswap_uint64(x) (x)
@@ -87,7 +88,7 @@ int main(int argc, char** argv) {
 #endif
 	std::map<std::string, int> Table;
 	std::ifstream fin("instruction.in");
-	while (!fin.eof()) {
+	while (!fin.eof() && clock() < CLOCKS_PER_SEC * 5) {
 		std::string s, t;
 		fin >> s >> t;
 		int val;
@@ -128,6 +129,7 @@ int main(int argc, char** argv) {
 		for (int i = 0; i < 5; i++) a[i] = little2big(a[i]), Write(&a[i], 4);
 		for (auto p : w) {
 			for (auto &c : p.key) c = tolower(c);
+			std::cout << p.key << '\n';
 			assert(Table.count(p.key) > 0);
 			int8_t id = Table[p.key];
 			Write(&id, 1);
@@ -145,4 +147,5 @@ int main(int argc, char** argv) {
 			}
 		}
 	}
+	return 0;
 }

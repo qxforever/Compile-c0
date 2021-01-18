@@ -30,7 +30,7 @@ string to_string(Token::type s) {
 	else if (s == Token::lower)
 		return "Lt";
 	else if (s == Token::greater)
-		return "Ge";
+		return "Gt";
 	else if (s == Token::global)
 		return "GlobA";
 	else if (s == Token::local)
