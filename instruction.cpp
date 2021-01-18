@@ -88,7 +88,6 @@ private:
 	uint32_t id = 0, varCnt = 0, paramCnt = 0, noOut;
 	Token::type retType;
 	static std::ofstream out;
-
 public:
 	void push(uint64_t num) { _add("Push", num); }
 
@@ -108,7 +107,7 @@ public:
 
 	void store() { _add("Store64"); }
 
-	void ret() { _add("Ret"); }
+	void ret() { _add("Ret"); res = 1; }
 
 	void call(uint32_t id) { _add("Call", id); }
 
@@ -157,7 +156,7 @@ public:
 	void setNoOut(uint32_t x) { noOut = x; }
 	void setName(std::string s) { name = s; }
 
-
+	bool res = false;
 	void get(int& a1, int& a2, int& a3, int& a4, int& a5, std::vector<instruction> &w) { 
 		a1 = id, a2 = retType != Token::Void, a3 = paramCnt, a4 = varCnt, a5 = (int)instructions.size();
 		w = instructions;

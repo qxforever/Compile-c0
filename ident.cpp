@@ -12,7 +12,7 @@
 
 struct Global {
 	int8_t isConst;
-	int64_t size;
+	int32_t size;
 	std::string val;
 
 	Global() {}
@@ -94,7 +94,11 @@ public:
 		auto& it = isFunc ? funCnt : ((newIdent.size() == 1) ? globalCnt : cnt);
 		it++;
 		int val = 0;
-		if (newIdent.size() == 1) val = globalCnt + funCnt - 1;
+		if (isFunc) {
+			if (funCnt <= 9) val = funCnt - 1;
+			else val = funCnt - 9; 
+		}
+		else if (newIdent.size() == 1) val = globalCnt + funCnt - 1;
 		else val = cnt - 1;
 		auto ret = Ident(isConst, type, newIdent.size() == 1, isFunc, val, name);
 		ident[table[name]].push_back(ret);
@@ -113,6 +117,7 @@ public:
 	}
 
 	uint32_t getSize() { return cnt; }
+	uint32_t getFunId() { return funCnt + globalCnt - 1; }
 	uint32_t getLastSize() { return lastCnt; }
 	uint32_t getGlobalCnt() { return globalCnt; }
 	IdentTable() { newBlock();}

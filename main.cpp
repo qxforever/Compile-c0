@@ -2,8 +2,23 @@
 #include "tokenizer.cpp"
 #include "instruction.cpp"
 #include "ident.cpp"
+#include <iostream>
 
-int main() {
+#ifdef ONLINE_JUDGE
+#define _byteswap_uint64(x) (x)
+#endif
+
+uint32_t little2big(uint32_t le) {
+#ifdef ONLINE_JUDGE
+	return le;
+#endif
+    return ((le & 0xff) << 24) 
+            | ((le & 0xff00) << 8) 
+            | ((le & 0xff0000) >> 8)
+            | ((le >> 24) & 0xff);
+}
+
+int main(int argc, char** argv) {
 	global.push_back(Global(1, 6, "_start"));
 #ifndef ONLINE_JUDGE
 	freopen("test.in", "r", stdin);
@@ -14,7 +29,6 @@ int main() {
 #ifdef ONLINE_JUDGE
 	std::cerr << s << '\n';
 #endif
-	return 0;
 	Tokenizer tokenizer(s);
 #ifdef debug
 	freopen("test.log", "w", stderr);
@@ -67,9 +81,9 @@ int main() {
 	Analyser analyser(tokenizer, table);
 	analyser.analyse();
 #ifndef ONLINE_JUDGE
-	std::ofstream out("test.out");
+	std::ofstream out("test.out", std::ios::out | std::ios::binary);
 #else
-	auto &out = std::cout;
+	std::ofstream out(argv[1], std::ios::out | std::ios::binary);
 #endif
 	std::map<std::string, int> Table;
 	std::ifstream fin("instruction.in");
@@ -84,16 +98,18 @@ int main() {
 	auto Write = [&](const void *p, int size) {
 		out.write((char*)p, size);
 	};
-	
-	uint32_t magic = 0x72303b3e, version = 0x00000001;
+
+	uint32_t magic = little2big(0x72303b3e), version = little2big(0x00000001);
 	Write(&magic, 4);
 	Write(&version, 4);
-	sz = global.size();
-	Write(&sz, 4);
 
+	sz = little2big((int32_t)global.size());
+	Write(&sz, 4);
 	for (auto e : global) {
+		int _sz = little2big(e.size);
+		// std::cout << e.size << '\n';
 		Write(&e.isConst, 1);
-		Write(&e.size, 4);
+		Write(&_sz, 4);
 		if (e.isConst) {
 			Write(e.val.c_str(), e.size);
 		}
@@ -103,25 +119,27 @@ int main() {
 		}
 	}
 	auto &vec = analyser.getInst();
-	sz = vec.size();
+	sz = little2big((uint32_t)vec.size());
 	Write(&sz, 4);
 	for (auto ins : vec) {
 		int a[5];
 		std::vector<instruction> w;
 		ins.get(a[0], a[1], a[2], a[3], a[4], w);
-		for (int i = 0; i < 5; i++) Write(&a[i], 4);
+		for (int i = 0; i < 5; i++) a[i] = little2big(a[i]), Write(&a[i], 4);
 		for (auto p : w) {
 			for (auto &c : p.key) c = tolower(c);
 			assert(Table.count(p.key) > 0);
 			int8_t id = Table[p.key];
 			Write(&id, 1);
 			if (p.value != "") {
-				if (p.value == "push") {
+				if (p.key == "push") {
 					uint64_t val = std::stoull(p.value);
+					val = _byteswap_uint64(val);
 					Write(&val, 8);
 				}
 				else {
 					int32_t val = std::stoi(p.value);
+					val = little2big(val);
 					Write(&val, 4);
 				}
 			}

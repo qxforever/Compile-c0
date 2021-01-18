@@ -21,6 +21,7 @@ private:
 	void returnStat();
 	void blockStat(int flag = 1);
 	Token::type expression();
+	Token::type _expression();
 	Token::type factor();
 	Token::type item();
 	void program();
@@ -208,12 +209,12 @@ void Analyser::blockStat(int flag) {
 }
 
 Token::type Analyser::expression() {
-	auto leftValue = item();
+	auto leftValue = _expression();
 	if (leftValue == Token::Void || leftValue == Token::Bool) return leftValue;
 	auto nxt = nextToken();
 	// bool
 	if (Token::isBoolOperator(nxt.first)) {
-		auto rightValue = item();
+		auto rightValue = _expression();
 		ASSERT(leftValue == rightValue, "compare in different type");
 		// 比较一哈子
 		inst->custom("Cmp", leftValue);
@@ -253,6 +254,21 @@ Token::type Analyser::expression() {
 		nxt = nextToken();
 	}
 
+	unReadToken();
+	return leftValue;
+}
+
+Token::type Analyser::_expression() {
+	auto leftValue = item();
+	if (leftValue == Token::Void || leftValue == Token::Bool) return leftValue;
+	auto nxt = nextToken();
+	while (nxt.first == Token::plus || nxt.first == Token::minus) {
+		auto rightValue = item();
+		ASSERT(leftValue == rightValue, "compare in different type");
+
+		inst->custom(nxt.first, rightValue);
+		nxt = nextToken();
+	}
 	unReadToken();
 	return leftValue;
 }
@@ -464,5 +480,7 @@ void Analyser::function() {
 
 	assert(__tableSize >= _tableSize);  // check correctness
 	inst->setVarCnt(__tableSize - _tableSize);
-	inst->setId(_func.pos);
+	inst->setId(table.getFunId());
+	if (!inst->res && _func.type == Token::Void) inst->ret();
+	else ERROR("No return expr in func " + _func.name);
 }
