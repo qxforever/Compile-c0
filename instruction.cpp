@@ -88,6 +88,7 @@ private:
 	uint32_t id = 0, varCnt = 0, paramCnt = 0, noOut;
 	Token::type retType;
 	static std::ofstream out;
+
 public:
 	void push(uint64_t num) { _add("Push", num); }
 
@@ -107,7 +108,10 @@ public:
 
 	void store() { _add("Store64"); }
 
-	void ret() { _add("Ret"); res = 1; }
+	void ret() {
+		_add("Ret");
+		res = 1;
+	}
 
 	void call(uint32_t id) { _add("Call", id); }
 
@@ -128,9 +132,8 @@ public:
 	uint32_t getSize() { return instructions.size(); }
 
 	int getLast() { return instructions.size() - 1; }
-	void setIndex(int index, std::string val) {
-		instructions[index].value = val;
-	}
+	std::string getLastInst() { return instructions.back().key; }
+	void setIndex(int index, std::string val) { instructions[index].value = val; }
 	friend std::ostream& operator<<(std::ostream& out, Instructions& ins) {
 		out << "fn [" << ins.id << "] " << ins.varCnt << ' ' << ins.paramCnt << " -> " << (ins.retType != Token::Void) << " {\n" << ins.instructions << "}\n\n";
 		return out;
@@ -159,7 +162,7 @@ public:
 	void setName(std::string s) { name = s; }
 
 	bool res = false;
-	void get(int& a1, int& a2, int& a3, int& a4, int& a5, std::vector<instruction> &w) { 
+	void get(int& a1, int& a2, int& a3, int& a4, int& a5, std::vector<instruction>& w) {
 		a1 = id, a2 = retType != Token::Void, a3 = paramCnt, a4 = varCnt, a5 = (int)instructions.size();
 		w = instructions;
 	}

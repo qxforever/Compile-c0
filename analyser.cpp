@@ -482,6 +482,9 @@ void Analyser::function() {
 	assert(__tableSize >= _tableSize);  // check correctness
 	inst->setVarCnt(__tableSize - _tableSize);
 	inst->setId(table.getFunId());
-	if (!inst->res &&  _func.type == Token::Void) inst->ret();
-	if(!inst->res) ERROR("No return expr in func " + _func.name);
+	
+	if (inst->getLastInst() != "Ret") {
+		if (_func.type == Token::Void) inst->ret();
+	}
+	
 }
