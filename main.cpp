@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
 		int a[5];
 		std::vector<instruction> w;
 		ins.get(a[0], a[1], a[2], a[3], a[4], w);
-		a[3] += 10;
+		a[3] += 1;
 		for (int i = 0; i < 5; i++) a[i] = little2big(a[i]), Write(&a[i], 4);
 		for (auto p : w) {
 			for (auto &c : p.key) c = tolower(c);
