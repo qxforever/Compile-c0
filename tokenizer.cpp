@@ -115,7 +115,7 @@ public:
 					int cnt = 0;
 					while (isdigit(s[j])) tmp += s[j++], cnt++;
 					ASSERT(cnt > 0, "at least 1 digit after '.'");
-					if (s[j] == 'e') {
+					if (s[j] == 'e' || s[j] == 'E') {
 						tmp += s[j++];
 						if (s[j] == '+' || s[j] == '-') tmp += s[j++];
 						cnt = 0;
