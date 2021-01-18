@@ -144,11 +144,14 @@ public:
 		noOut = flag;
 	}
 
-#ifndef ONLINE_JUDGE
+
 	~Instructions() {
+#ifndef ONLINE_JUDGE
 		if (!noOut) out << *this;
-	}
+#else
+		if (!noOut) std::cerr << *this;
 #endif
+	}
 
 	uint32_t getSize() { return instructions.size(); }
 	int getLast() { return instructions.size() - 1; }
