@@ -302,7 +302,7 @@ Token::type Analyser::factor() {
 					inst->load();
 				}
 				else if (nxt.first == Token::integer)
-					inst->push(std::stoull(nxt.second)), type = nxt.first;
+					inst->push((uint64_t)std::stoull(nxt.second)), type = nxt.first;
 				else if (nxt.first == Token::Double)
 					inst->push(std::stod(nxt.second)), type = nxt.first;
 				else
@@ -346,7 +346,7 @@ Token::type Analyser::factor() {
 	}
 	// 字面量表达式 uint
 	else if (nxt.first == Token::integer) {
-		inst->push(std::stoull(nxt.second));
+		inst->push((uint64_t)std::stoull(nxt.second));
 		type = Token::integer;
 	}
 	// double
