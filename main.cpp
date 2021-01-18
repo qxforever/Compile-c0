@@ -5,7 +5,9 @@
 
 int main() {
 	global.push_back(Global(1, 6, "_start"));
+#ifndef ONLINE_JUDGE
 	freopen("test.in", "r", stdin);
+#endif
 	std::string s;
 	char c;
 	while ((c = getchar()) != EOF)  s += c;
