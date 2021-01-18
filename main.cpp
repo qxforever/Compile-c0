@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
 	std::ofstream out(argv[1], std::ios::out | std::ios::binary);
 #endif
 	std::map<std::string, int> Table;
-	std::ifstream fin("instruction.in");
+	std::ifstream fin("instruction.io");
 	while (!fin.eof() && clock() < CLOCKS_PER_SEC * 5) {
 		std::string s, t;
 		fin >> s >> t;
