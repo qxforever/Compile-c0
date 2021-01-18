@@ -6,8 +6,8 @@
 #include <ctime>
 #define vector deque
 
-#ifdef ONLINE_JUDGE_
-#define _byteswap_uint64(x) (x)
+#ifdef ONLINE_JUDGE
+#define _byteswap_uint64(x) __bswap_64(x)
 #endif
 
 uint32_t little2big(uint32_t le) {
