@@ -26,7 +26,7 @@ struct Global {
 std::vector<Global> global;
 
 struct Ident {
-	bool isConst, isGlobal, isFunc;
+	bool isConst, isGlobal, isFunc, isStd;
 	Token::type type, scope;
 	int pos;
 	std::deque<Token::type> params;

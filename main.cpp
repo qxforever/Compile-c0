@@ -38,22 +38,22 @@ int main(int argc, char** argv) {
 #endif
 // init std Function
 	IdentTable table;
-	table.add("getint", 1, Token::integer, 1);
-	table.add("getdouble", 1, Token::Double, 1);
-	table.add("getchar", 1, Token::integer, 1);
-	table.add("putint", 1, Token::Void, 1);
+	table.add("getint", 1, Token::integer, 1).isStd = 1;
+	table.add("getdouble", 1, Token::Double, 1).isStd = 1;
+	table.add("getchar", 1, Token::integer, 1).isStd = 1;
+	table.add("putint", 1, Token::Void, 1).isStd = 1;
 	auto &fun1 = table.find("putint");
 	fun1.params.push_back(Token::integer);
-	table.add("putdouble", 1, Token::Void, 1);
+	table.add("putdouble", 1, Token::Void, 1).isStd = 1;
 	auto &fun2 = table.find("putdouble");
 	fun2.params.push_back(Token::Double);
-	table.add("putchar", 1, Token::Void, 1);
+	table.add("putchar", 1, Token::Void, 1).isStd = 1;
 	auto &fun3 = table.find("putchar");
 	fun3.params.push_back(Token::integer);
-	table.add("putstr", 1, Token::Void, 1);
+	table.add("putstr", 1, Token::Void, 1).isStd = 1;
 	auto &fun4 = table.find("putstr");
 	fun4.params.push_back(Token::integer);
-	table.add("putln", 1, Token::Void, 1);
+	table.add("putln", 1, Token::Void, 1).isStd = 1;
 
 // init string 
 
@@ -127,6 +127,7 @@ int main(int argc, char** argv) {
 		int a[5];
 		std::vector<instruction> w;
 		ins.get(a[0], a[1], a[2], a[3], a[4], w);
+		a[3] += 10;
 		for (int i = 0; i < 5; i++) a[i] = little2big(a[i]), Write(&a[i], 4);
 		for (auto p : w) {
 			for (auto &c : p.key) c = tolower(c);

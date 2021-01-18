@@ -24,6 +24,7 @@ private:
 	Token::type _expression();
 	Token::type factor();
 	Token::type item();
+	Token::type callExpr();
 	void program();
 	void function();
 
@@ -171,9 +172,9 @@ void Analyser::whileStat() {
 	inst->br(0);
 	int jumpBegin = inst->getLast();
 	inst->setIndex(jump, std::to_string(int32_t(inst->getSize() - pos - 1)));
-	std::cerr << "jump to end " << inst->getSize() - pos - 1 << '\n';
+	// std::cerr << "jump to end " << inst->getSize() - pos - 1 << '\n';
 	inst->setIndex(jumpBegin, std::to_string(int32_t(_pos - inst->getSize() + 1)));
-	std::cerr << "_pos = " << _pos << " , " << "pos = " << pos << '\n';
+	// std::cerr << "_pos = " << _pos << " , " << "pos = " << pos << '\n';
 }
 
 // @Todo
@@ -302,39 +303,8 @@ Token::type Analyser::factor() {
 		auto it = table.find(nxt.second);
 		// isFunction
 		if (it.isFunc) {
-			type = it.type;						   //
-			inst->stackalloc(type != Token::Void);  // 申请空间
-			// std::cerr << it.name << " " << it.type << '\n';
-			nxt = nextToken();
-			ASSERT(nxt.first == Token::leftParen, "expected '(' but find " + nxt.second);
-			nxt = nextToken();
-			size_t cnt = 0;
-			while (1) {
-				if (nxt.first == Token::rightParen) break;
-				ASSERT(cnt < it.params.size(), "too many params in " + it.name);
-				Token::type type = Token::Void;
-				if (nxt.first == Token::identify) {
-					auto _it = table.find(nxt.second);
-					type = _it.type;
-					ASSERT(!_it.isFunc, _it.name + " function can't be param");
-					inst->pushAddress(_it.scope, _it.pos);
-					inst->load();
-				}
-				else if (nxt.first == Token::integer)
-					inst->push((uint64_t)std::stoull(nxt.second)), type = nxt.first;
-				else if (nxt.first == Token::Double)
-					inst->push(std::stod(nxt.second)), type = nxt.first;
-				else
-					ERROR(nxt.second + " can't be param");
-				ASSERT(type == it.params[cnt], nxt.second + " type mismatched with function param");
-				nxt = nextToken();
-				cnt++;
-				if (nxt.first == Token::rightParen) break;
-				nxt = nextToken();
-			}
-			ASSERT(cnt == it.params.size(), "too few params in " + it.name);
-			if (it.pos > 8) inst->call(it.pos);
-			else inst->callname(it.pos);
+			unReadToken();
+			type = callExpr();
 		}
 		// isVariable
 		else {
@@ -391,6 +361,34 @@ Token::type Analyser::factor() {
 	}
 	unReadToken();
 	return type;
+}
+
+Token::type Analyser::callExpr() {
+	auto nxt = nextToken();
+	ASSERT(nxt.first == Token::identify, "must be function");
+	auto it = table.find(nxt.second);
+	ASSERT(it.isFunc, "must be function.");
+	inst->stackalloc(it.type != Token::Void);
+	nxt = nextToken();
+	ASSERT(nxt.first == Token::leftParen, "expected '(' but find " + nxt.second);
+	nxt = nextToken();
+	size_t cnt = 0;
+	while (1) {
+		if (nxt.first == Token::rightParen) break;
+		ASSERT(cnt < it.params.size(), "too many params in " + it.name);
+		unReadToken();
+		Token::type type = expression();
+		// std::cerr << "type = " << type << ".." << "should be " << it.params[cnt] << '\n';
+		ASSERT(type == it.params[cnt], nxt.second + " type mismatched with function param");
+		nxt = nextToken();
+		cnt++;
+		if (nxt.first == Token::rightParen) break;
+		nxt = nextToken();
+	}
+	ASSERT(cnt == it.params.size(), "too few params in " + it.name);
+	if (!it.isStd) inst->call(it.pos);
+	else inst->callname(it.pos);
+	return it.type;
 }
 
 // program -> decl_stmt* function*
@@ -483,6 +481,6 @@ void Analyser::function() {
 	assert(__tableSize >= _tableSize);  // check correctness
 	inst->setVarCnt(__tableSize - _tableSize);
 	inst->setId(table.getFunId());
-	if (!inst->res ||  _func.type == Token::Void) inst->ret();
-	else ERROR("No return expr in func " + _func.name);
+	if (!inst->res &&  _func.type == Token::Void) inst->ret();
+	if(!inst->res) ERROR("No return expr in func " + _func.name);
 }
