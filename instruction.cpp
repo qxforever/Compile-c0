@@ -141,6 +141,7 @@ public:
 	Instructions(IdentTable* p, int flag = 1) {
 		this->p = p;
 		noOut = flag;
+		instructions.reserve(10010);
 	}
 
 #ifndef ONLINE_JUDGE

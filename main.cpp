@@ -129,7 +129,6 @@ int main(int argc, char** argv) {
 		for (int i = 0; i < 5; i++) a[i] = little2big(a[i]), Write(&a[i], 4);
 		for (auto p : w) {
 			for (auto &c : p.key) c = tolower(c);
-			std::cout << p.key << '\n';
 			assert(Table.count(p.key) > 0);
 			int8_t id = Table[p.key];
 			Write(&id, 1);
