@@ -61,7 +61,7 @@ private:
 
 public:
 	void newBlock() { newIdent.push(std::set<std::string>()); }
-	void newFunc() { newBlock(), cnt = lastCnt = 0, paramCnt = 1; }
+	void newFunc(bool ret = false) { newBlock(), cnt = lastCnt = 0, paramCnt = ret; }
 	void exitBlock() {
 		lastCnt = std::max(lastCnt, cnt);
 		auto set = newIdent.top();

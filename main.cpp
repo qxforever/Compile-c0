@@ -35,6 +35,7 @@ int main(int argc, char** argv) {
 #ifdef debug
 	freopen("test.log", "w", stderr);
 	tokenizer.show();
+	return 0;
 #endif
 // init std Function
 	IdentTable table;

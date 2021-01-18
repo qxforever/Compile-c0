@@ -168,6 +168,48 @@ public:
 				token.push_back({Token::string, ss});
 				i = j;
 			}
+			else if (s[i] == '\'') {
+				int j = i;
+				std::vector<int> tmp;
+				for (; j < len; j++) {
+					if (s[j] == '\\') tmp.push_back(-1);
+					else tmp.push_back(s[j]);
+					if (s[j] == '\'' && tmp.size() > 1 && tmp[tmp.size() - 2] != -1) break;
+					if (tmp.size() >= 2 && tmp[tmp.size() - 2] == -1) {
+						int c = tmp.back();
+						if (!(c == 'n' || c == 't' || c == 'r' || c == -1 || c == '\'' || c == '\"')) {
+							std::cerr << "Invalid escape sequence \n";
+							exit(3);
+						}
+						tmp.resize(tmp.size() - 2);
+						switch (c){
+							case 'n':
+								tmp.push_back('\n');break;
+							case 't':
+								tmp.push_back('\t');break;
+							case 'r':
+								tmp.push_back('\r');break;
+							case '\'':
+								tmp.push_back('\'');break;
+							case '\"':
+								tmp.push_back('\"');break;
+							case -1:
+								tmp.push_back('\\');break;
+							default:
+								ERROR("Invalid escape sequence");
+							break;
+						}
+					}
+				}
+				if (j == len) {
+					ERROR("\" does not match");
+				}
+				std::string ss;
+				for (int i = 1; i < (int)tmp.size() - 1; i++) ss += (char)tmp[i];
+				ASSERT(ss.size() == 1, "Invalid char varible");
+				token.push_back({Token::integer, std::to_string(int(ss[0]))});
+				i = j;
+			}
 			else if (s[i] == '=') {
 				if (s[i + 1] == '=') {
 					token.push_back({Token::equal, "=="});

@@ -424,7 +424,7 @@ void Analyser::function() {
 	insts.push_back(Instructions(&table));	// 函数内部需要单独的 instructions
 	inst = &insts.back();
 	inst->setNoOut(0);
-	table.newFunc();
+	// table.newFunc();
 
 	nxt = nextToken();	// should be '('
 	ASSERT(nxt.first == Token::leftParen, "unexpected " + nxt.second + " after function identifier");
@@ -464,6 +464,7 @@ void Analyser::function() {
 	auto type = Token::toVarType(nxt.first);
 	_func.type = type;
 	inst->setReturnType(type);
+	table.newFunc(type != Token::Void);
 	// std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
 	// if (_func.type != Token::Void) table.add("__ReturnValue.", 0, _func.type, 0);
 	// std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
