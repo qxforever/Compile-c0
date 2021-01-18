@@ -4,8 +4,8 @@
 #include <iostream>
 #include <string>
 #include <utility>
+#define vector deque
 #include <vector>
-
 namespace std {
 string to_string(string s) {
 	return s;
@@ -127,8 +127,10 @@ public:
 
 	uint32_t getSize() { return instructions.size(); }
 
-	instruction& getLast() { return instructions.back(); }
-
+	int getLast() { return instructions.size() - 1; }
+	void setIndex(int index, std::string val) {
+		instructions[index].value = val;
+	}
 	friend std::ostream& operator<<(std::ostream& out, Instructions& ins) {
 		out << "fn [" << ins.id << "] " << ins.varCnt << ' ' << ins.paramCnt << " -> " << (ins.retType != Token::Void) << " {\n" << ins.instructions << "}\n\n";
 		return out;
@@ -141,7 +143,6 @@ public:
 	Instructions(IdentTable* p, int flag = 1) {
 		this->p = p;
 		noOut = flag;
-		instructions.reserve(10010);
 	}
 
 #ifndef ONLINE_JUDGE

@@ -4,13 +4,14 @@
 #include "ident.cpp"
 #include <iostream>
 #include <ctime>
+#define vector deque
 
-#ifdef ONLINE_JUDGE
+#ifdef ONLINE_JUDGE_
 #define _byteswap_uint64(x) (x)
 #endif
 
 uint32_t little2big(uint32_t le) {
-#ifdef ONLINE_JUDGE
+#ifdef ONLINE_JUDGE_
 	return le;
 #endif
     return ((le & 0xff) << 24) 

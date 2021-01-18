@@ -35,7 +35,7 @@ public:
 	}
 
 	Analyser(Tokenizer tokenizer, IdentTable &table) : token(tokenizer), table(table) {
-		insts.reserve(10010);
+		// insts.reserve(10010);
 		insts.push_back(Instructions(&table));
 		inst = &insts[0];
 		inst->setNoOut(0), inst->setReturnType(Token::Void), inst->setId(0), inst->setName("_start");  // _start'
@@ -127,35 +127,35 @@ void Analyser::constDeclareStat() {
 }
 
 void Analyser::ifStat() {
-	auto rightVal = expression();
-	ASSERT(Token::isNum(rightVal), "conditions can't be " + rightVal);
+	// auto rightVal = expression();
+	// ASSERT(Token::isNum(rightVal), "conditions can't be " + rightVal);
 
-	inst->br(0, 0);
-	uint32_t pos = inst->getSize() - 1;
-	auto& jumpNext = inst->getLast();
-	// pre block
-	blockStat();
-	//
-	inst->br(0);
-	auto& jumpEnd = inst->getLast();
-	uint32_t _pos = inst->getSize() - 1;
-	// jump next
-	jumpNext.value = std::to_string(inst->getSize() - pos - 1);
+	// inst->br(0, 0);
+	// uint32_t pos = inst->getSize() - 1;
+	// auto& jumpNext = inst->getLast();
+	// // pre block
+	// blockStat();
+	// //
+	// inst->br(0);
+	// auto& jumpEnd = inst->getLast();
+	// uint32_t _pos = inst->getSize() - 1;
+	// // jump next
+	// jumpNext.value = std::to_string(inst->getSize() - pos - 1);
 
-	auto nxt = nextToken();
-	if (nxt.first != Token::Else) {
-		unReadToken();
-		return;
-	}
-	else {
-		nxt = nextToken();
-		if (nxt.first == Token::If)
-			ifStat();
-		else
-			unReadToken(), blockStat();
-	}
-	// jump to end
-	jumpEnd.value = std::to_string(inst->getSize() - _pos - 1);
+	// auto nxt = nextToken();
+	// if (nxt.first != Token::Else) {
+	// 	unReadToken();
+	// 	return;
+	// }
+	// else {
+	// 	nxt = nextToken();
+	// 	if (nxt.first == Token::If)
+	// 		ifStat();
+	// 	else
+	// 		unReadToken(), blockStat();
+	// }
+	// // jump to end
+	// jumpEnd.value = std::to_string(inst->getSize() - _pos - 1);
 }
 
 void Analyser::whileStat() {
@@ -166,12 +166,14 @@ void Analyser::whileStat() {
 
 	inst->br(0, 0);
 	uint32_t pos = inst->getSize() - 1;
-	auto& jump = inst->getLast();
+	int jump = inst->getLast();
 	blockStat();
-	inst->br(0, 0);
-	auto& jumpBegin = inst->getLast();
-	jump.value = std::to_string(int32_t(inst->getSize() - pos - 1));
-	jumpBegin.value = std::to_string(int32_t(_pos - pos - 1));
+	inst->br(0);
+	int jumpBegin = inst->getLast();
+	inst->setIndex(jump, std::to_string(int32_t(inst->getSize() - pos - 1)));
+	std::cerr << "jump to end " << inst->getSize() - pos - 1 << '\n';
+	inst->setIndex(jumpBegin, std::to_string(int32_t(_pos - inst->getSize() + 1)));
+	std::cerr << "_pos = " << _pos << " , " << "pos = " << pos << '\n';
 }
 
 // @Todo
