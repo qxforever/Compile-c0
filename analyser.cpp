@@ -309,6 +309,7 @@ Token::type Analyser::factor() {
 		// isVariable
 		else {
 			type = it.type;	 // 不考虑类型转换的情况下
+			// std::cerr << "name = " << it.name << ' ' << "type == param ? " << (it.scope == Token::param) << '\n';
 			inst->pushAddress(it.scope, it.pos);
 			nxt = nextToken();
 			// 赋值表达式
@@ -467,7 +468,7 @@ void Analyser::function() {
 	if (_func.type != Token::Void) table.add("__ReturnValue.", 0, _func.type, 0);
 	// std::cerr << "pos = " << &table.find(_name) << " & " << &_func << '\n';
 	for (const auto &e : funParams) {
-		auto __it = table.add(std::get<0>(e), std::get<2>(e), std::get<1>(e), 0);
+		auto &__it = table.add(std::get<0>(e), std::get<2>(e), std::get<1>(e), 0);
 		_func._add(std::get<1>(e));
 		__it.scope = Token::param;
 	}
