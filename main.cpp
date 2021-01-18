@@ -14,6 +14,7 @@ int main() {
 #ifdef ONLINE_JUDGE
 	std::cerr << s << '\n';
 #endif
+	return 0;
 	Tokenizer tokenizer(s);
 #ifdef debug
 	freopen("test.log", "w", stderr);
