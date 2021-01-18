@@ -202,7 +202,7 @@ void Analyser::blockStat(int flag) {
 	auto nxt = nextToken();
 	ASSERT(nxt.first == Token::leftBrace, "expected block statement after control stat or function, find " + nxt.second);
 	if (flag) table.newBlock();
-	nextToken();
+	nxt = nextToken();
 	while (nxt.first != Token::rightBrace) {
 		unReadToken();
 		statement();

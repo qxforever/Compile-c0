@@ -129,11 +129,7 @@ public:
 
 	template <typename T> void custom(T u, Token::type v) { _add(std::to_string(u) + std::to_string(v)); }
 
-	uint32_t getSize() { return instructions.size(); }
 
-	int getLast() { return instructions.size() - 1; }
-	std::string getLastInst() { return instructions.back().key; }
-	void setIndex(int index, std::string val) { instructions[index].value = val; }
 	friend std::ostream& operator<<(std::ostream& out, Instructions& ins) {
 		out << "fn [" << ins.id << "] " << ins.varCnt << ' ' << ins.paramCnt << " -> " << (ins.retType != Token::Void) << " {\n" << ins.instructions << "}\n\n";
 		return out;
@@ -153,6 +149,11 @@ public:
 		if (!noOut) out << *this;
 	}
 #endif
+
+	uint32_t getSize() { return instructions.size(); }
+	int getLast() { return instructions.size() - 1; }
+	std::string getLastInst() { return instructions.size() ? instructions.back().key : ""; }
+	void setIndex(int index, std::string val) { instructions[index].value = val; }
 
 	void setVarCnt(uint32_t x) { varCnt = x; };
 	void setParamCnt(uint32_t x) { paramCnt = x; };

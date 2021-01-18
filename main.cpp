@@ -76,10 +76,6 @@ int main(int argc, char** argv) {
 	}
 	while (sz >= 0) tokenizer.unRead(), sz--;
 
-#ifdef debug
-	tokenizer.show();
-#endif
-
 	Analyser analyser(tokenizer, table);
 	analyser.analyse();
 #ifndef ONLINE_JUDGE
