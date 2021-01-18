@@ -127,35 +127,35 @@ void Analyser::constDeclareStat() {
 }
 
 void Analyser::ifStat() {
-	// auto rightVal = expression();
-	// ASSERT(Token::isNum(rightVal), "conditions can't be " + rightVal);
+	auto rightVal = expression();
+	ASSERT(Token::isNum(rightVal), "conditions can't be " + rightVal);
 
-	// inst->br(0, 0);
-	// uint32_t pos = inst->getSize() - 1;
-	// auto& jumpNext = inst->getLast();
-	// // pre block
-	// blockStat();
-	// //
-	// inst->br(0);
-	// auto& jumpEnd = inst->getLast();
-	// uint32_t _pos = inst->getSize() - 1;
-	// // jump next
-	// jumpNext.value = std::to_string(inst->getSize() - pos - 1);
+	inst->br(0, 0);
+	uint32_t pos = inst->getSize() - 1;
+	int jumpNext = inst->getLast();
+	// pre block
+	blockStat();
+	//
+	inst->br(0);
+	int jumpEnd = inst->getLast();
+	uint32_t _pos = inst->getSize() - 1;
+	// jump next
+	inst->setIndex(jumpNext, std::to_string(inst->getSize() - pos - 1));
 
-	// auto nxt = nextToken();
-	// if (nxt.first != Token::Else) {
-	// 	unReadToken();
-	// 	return;
-	// }
-	// else {
-	// 	nxt = nextToken();
-	// 	if (nxt.first == Token::If)
-	// 		ifStat();
-	// 	else
-	// 		unReadToken(), blockStat();
-	// }
-	// // jump to end
-	// jumpEnd.value = std::to_string(inst->getSize() - _pos - 1);
+	auto nxt = nextToken();
+	if (nxt.first != Token::Else) {
+		unReadToken();
+		return;
+	}
+	else {
+		nxt = nextToken();
+		if (nxt.first == Token::If)
+			ifStat();
+		else
+			unReadToken(), blockStat();
+	}
+	// jump to end
+	inst->setIndex(jumpEnd, std::to_string(inst->getSize() - _pos - 1));
 }
 
 void Analyser::whileStat() {
@@ -483,6 +483,6 @@ void Analyser::function() {
 	assert(__tableSize >= _tableSize);  // check correctness
 	inst->setVarCnt(__tableSize - _tableSize);
 	inst->setId(table.getFunId());
-	if (!inst->res && _func.type == Token::Void) inst->ret();
+	if (!inst->res ||  _func.type == Token::Void) inst->ret();
 	else ERROR("No return expr in func " + _func.name);
 }
