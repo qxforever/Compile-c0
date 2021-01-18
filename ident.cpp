@@ -40,6 +40,7 @@ struct Ident {
 		this->pos = pos;
 		this->name = name;
 		this->isGlobal = isGlobal;
+		this->isStd = false;
 		if (isGlobal) {
 			global.push_back(Global(isFunc ? 1 : 0, isFunc ? name.size() : 8, isFunc ? name : ""));
 		}
