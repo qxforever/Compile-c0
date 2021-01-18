@@ -27,7 +27,9 @@ private:
 	Token::type callExpr();
 	void program();
 	void function();
-
+	std::deque<std::deque<std::pair<int,int>>> toEnd;
+	std::deque<std::deque<std::pair<int,int>>> toBegin;
+	
 public:
 	void analyse() { program(); }
 
@@ -74,6 +76,20 @@ void Analyser::statement() {
 	else if (it.first == Token::rightBrace) {
 		unReadToken();
 		return ;
+	}
+	else if (it.first == Token::Continue) {
+		ASSERT(toBegin.size() > 0, "continue only appear in loops");
+		inst->br(0);
+		toBegin.back().push_back(std::make_pair(inst->getLast(), inst->getSize()));
+		auto nxt = nextToken();
+		ASSERT(nxt.first == Token::semicolon, "expected ; after continue");
+	}
+	else if (it.first == Token::Break) {
+		ASSERT(toEnd.size() > 0, "continue only appear in loops");
+		inst->br(0);
+		toEnd.back().push_back(std::make_pair(inst->getLast(), inst->getSize() - 1));
+		auto nxt = nextToken();
+		ASSERT(nxt.first == Token::semicolon, "expected ; after break");
 	}
 	else {
 		unReadToken();
@@ -160,6 +176,8 @@ void Analyser::ifStat() {
 }
 
 void Analyser::whileStat() {
+	toEnd.push_back(std::deque<std::pair<int,int>>());
+	toBegin.push_back(std::deque<std::pair<int,int>>());
 	uint32_t _pos = inst->getSize() - 1;
 	auto rightVal = expression();
 	// std::cerr << " ? "  << '\n';
@@ -171,10 +189,19 @@ void Analyser::whileStat() {
 	blockStat();
 	inst->br(0);
 	int jumpBegin = inst->getLast();
-	inst->setIndex(jump, std::to_string(int32_t(inst->getSize() - pos - 1)));
+	inst->setIndex(jump, std::to_string(int32_t(inst->getSize() - pos - 1))); // jumpEnd : pos = sz- 1
 	// std::cerr << "jump to end " << inst->getSize() - pos - 1 << '\n';
-	inst->setIndex(jumpBegin, std::to_string(int32_t(_pos - inst->getSize() + 1)));
+	inst->setIndex(jumpBegin, std::to_string(int32_t(_pos - inst->getSize() + 1))); // jumpBegin : pos = sz;
 	// std::cerr << "_pos = " << _pos << " , " << "pos = " << pos << '\n';
+	auto it = toBegin.back();
+	for (auto w : it) {
+		inst->setIndex(w.first, std::to_string(int32_t(_pos - w.second + 1)));
+	}
+	it = toEnd.back();
+	for (auto w : it) {
+		inst->setIndex(w.first, std::to_string(int32_t(inst->getSize() - w.second - 1)));
+	}
+	toBegin.pop_back();toEnd.pop_back();
 }
 
 // @Todo
