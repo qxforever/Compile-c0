@@ -90,8 +90,8 @@ public:
 			std::string tmp = "";
 			int j = i;
 
-			if (isAlpha(s[i])) {
-				while (isAlpha(s[j]) || isDigit(s[j])) {
+			if (isAlpha(s[i]) || s[i] == '_') {
+				while (isAlpha(s[j]) || isDigit(s[j]) || s[j] == '_') {
 					tmp += s[j];
 					j++;
 				}

@@ -143,9 +143,12 @@ public:
 		this->p = p;
 		noOut = flag;
 	}
+
+#ifndef ONLINE_JUDGE
 	~Instructions() {
 		if (!noOut) out << *this;
 	}
+#endif
 
 	void setVarCnt(uint32_t x) { varCnt = x; };
 	void setParamCnt(uint32_t x) { paramCnt = x; };
@@ -160,5 +163,6 @@ public:
 		w = instructions;
 	}
 };
-
+#ifndef ONLINE_JUDGE
 std::ofstream Instructions::out("debugger.out");
+#endif
