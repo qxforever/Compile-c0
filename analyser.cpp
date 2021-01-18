@@ -292,6 +292,7 @@ Token::type Analyser::factor() {
 			nxt = nextToken();
 			size_t cnt = 0;
 			while (1) {
+				if (nxt.first == Token::rightParen) break;
 				ASSERT(cnt < it.params.size(), "too many params in " + it.name);
 				Token::type type = Token::Void;
 				if (nxt.first == Token::identify) {
